@@ -10,8 +10,9 @@ const head = localFont({ src: "./fonts/bricolage-grotesque-latin.woff2", weight:
 const body = localFont({ src: "./fonts/figtree-latin.woff2", weight: "400 700", variable: "--font-body" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cpe-class-hub.vercel.app"), // full image links in link previews
   title: "Class Hub",
-  description: "CPE 3C class website",
+  description: "CPE 3C’s schedule, notices, files and courses in one place.",
   appleWebApp: { capable: true, title: "Class Hub" }, // opens full screen from the iPhone home screen
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
