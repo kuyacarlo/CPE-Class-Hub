@@ -2,7 +2,7 @@ import webpush from "web-push";
 import { buildDigest, sendAll, type PushSub } from "@/lib/push";
 import { adminClient } from "@/lib/supabase/admin";
 import { addDays, manilaToday } from "@/lib/time";
-import type { Course, Item, Notice, Slot, Term, TermBreak } from "@/lib/types";
+import type { Course, Item, Notice, Slot, SlotGroup, Term, TermBreak } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -31,14 +31,15 @@ export async function GET(req: Request) {
   // Tomorrow, the way the Schedule builds a day: every weekly slot, tomorrow's calendar items, the term and its breaks;
   // then notices dated tomorrow or linked to one of tomorrow's items.
   const tomorrow = addDays(today, 1);
-  const [courses, slots, items, term, breaks] = await Promise.all([
+  const [courses, slots, items, term, breaks, slotGroups] = await Promise.all([
     db.from("courses").select("*"),
     db.from("class_slots").select("*").order("starts_at"),
     db.from("calendar_items").select("*").eq("on_date", tomorrow),
     db.from("term").select("starts_on, week_count").single(),
     db.from("term_breaks").select("starts_on, label"),
+    db.from("slot_groups").select("slot_id, on_date, lab_group").eq("on_date", tomorrow),
   ]);
-  const failed = courses.error ?? slots.error ?? items.error ?? term.error ?? breaks.error;
+  const failed = courses.error ?? slots.error ?? items.error ?? term.error ?? breaks.error ?? slotGroups.error;
   if (failed) return Response.json({ error: failed.message }, { status: 500 });
   const ids = (items.data as Item[]).map((i) => i.id);
   const notices = await db.from("notices").select("*").eq("done", false)
@@ -48,7 +49,7 @@ export async function GET(req: Request) {
     courses: courses.data as Course[],
     week: {
       slots: slots.data as Slot[], items: items.data as Item[], notices: notices.data as Notice[], linkedItems: [],
-      term: term.data as Term, breaks: breaks.data as TermBreak[],
+      term: term.data as Term, breaks: breaks.data as TermBreak[], slotGroups: slotGroups.data as SlotGroup[],
     },
   };
 

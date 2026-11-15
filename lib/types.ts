@@ -19,6 +19,9 @@ export type Slot = {
   lab_group: '' | 'G1' | 'G2';
 };
 
+/** A class's lab group switched for one day only. */
+export type SlotGroup = { slot_id: string; on_date: string; lab_group: Slot['lab_group'] };
+
 export type Item = {
   created_at: string;
   id: string;

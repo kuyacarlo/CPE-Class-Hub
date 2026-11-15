@@ -15,7 +15,7 @@ const item = (id: string, course_id: string, kind: Item["kind"], on_date: string
   ({ created_at: "", id, course_id, kind, title: id, on_date, at_time, notes: null, moved_from_date: null, moved_from_time: null, class_slot_id, lab_group });
 const notice = (id: string, over: Partial<Notice> = {}): Notice =>
   ({ created_at: "", id, course_id: "a", title: id, body: "", posted_on: "2026-11-10", pinned: false, done: false, calendar_item_id: null, created_by: null, lab_group: "", ...over });
-const data = (slots: Slot[], items: Item[] = [], notices: Notice[] = []): WeekData => ({ slots, items, notices, linkedItems: [], term, breaks });
+const data = (slots: Slot[], items: Item[] = [], notices: Notice[] = []): WeekData => ({ slots, items, notices, linkedItems: [], term, breaks, slotGroups: [] });
 const ids = (es: ReturnType<typeof dayEntries>) =>
   es.map((e) => (e.t === "slot" ? e.slot.id : e.item.id));
 
@@ -123,6 +123,14 @@ describe("dayTimetable", () => {
     ]);
     expect(placed(dayTimetable("2026-11-17", d, [], ""))).toEqual(
       ["other 540-630 0/2", "quiz 540-600 1/2", "late 780-840 0/1"]);
+  });
+
+  it("uses a class's one-day group switch on that day only", () => {
+    const d = { ...data([cls("lab", "a", "13:00:00", "16:00:00", "G2")]), slotGroups: [{ slot_id: "lab", on_date: "2026-11-17", lab_group: "G1" as const }] };
+    expect(placed(dayTimetable("2026-11-17", d, [], "G1"))).toEqual(["lab 780-960 0/1"]);
+    expect(placed(dayTimetable("2026-11-17", d, [], "G2"))).toEqual([]);
+    expect(dayTimetable("2026-11-17", d, [], "").blocks[0].e).toMatchObject({ slot: { lab_group: "G1" } });
+    expect(placed(dayTimetable("2026-11-24", d, [], "G2"))).toEqual(["lab 780-960 0/1"]); // the next week is back to G2
   });
 
   it("splits overlapping G1 and G2 labs side by side, but only for the visitor's group when one is picked", () => {

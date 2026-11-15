@@ -1,5 +1,5 @@
 begin;
-select plan(31);
+select plan(34);
 
 -- Setup as superuser: two test officers.
 insert into officers (email, role) values
@@ -112,6 +112,21 @@ select throws_ok($$select count(*) from push_subscriptions$$, '42501', null, 'of
 set local role service_role;
 select is((select count(*)::int from claim_push_digests((select today from manila))), 1, 'the first run of the day claims the phone');
 select is((select count(*)::int from claim_push_digests((select today from manila))), 0, 'a second run the same day claims nothing');
+reset role;
+
+-- slot_groups: anyone reads one-day group switches; only officers set them
+create temp table aslot as select id from class_slots limit 1;
+grant select on aslot to anon, authenticated;
+set local request.jwt.claims = '{}'; -- a visitor has no email
+set local role anon;
+select throws_ok($$insert into slot_groups (slot_id, on_date, lab_group) values ((select id from aslot), current_date, 'G1')$$,
+  '42501', null, 'anon cannot switch a class''s group');
+set local role authenticated;
+set local request.jwt.claims = '{"email":"officer@test.local"}';
+select lives_ok($$insert into slot_groups (slot_id, on_date, lab_group) values ((select id from aslot), current_date, 'G1')$$,
+  'officer switches a class''s group for a day');
+set local role anon;
+select is((select count(*)::int from slot_groups), 1, 'anon reads group switches');
 reset role;
 
 select * from finish();

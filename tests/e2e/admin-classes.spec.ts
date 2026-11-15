@@ -32,6 +32,17 @@ test.describe("officer", () => {
     await thisWeek.click();
     const dlg = page.getByRole("dialog");
     await expect(dlg.getByText("Officers only")).toBeVisible();
+    // Switch the G2 class to G1 for this week only; next week it is G2 again.
+    await dlg.getByRole("group", { name: "Group on Thu 19 Nov" }).getByRole("button", { name: "G1" }).click();
+    await expect(page.getByRole("status")).toHaveText("G1 on Thu 19 Nov");
+    await expect(thisWeek).toContainText("G1");
+    await expect(await card("2026-11-22")).toContainText("G2");
+    await (await card("2026-11-15")).click();
+    await expect(dlg).toContainText("G1 (this week only; usually G2)");
+    await dlg.getByRole("group", { name: "Group on Thu 19 Nov" }).getByRole("button", { name: "G2" }).click();
+    await expect(page.getByRole("status")).toHaveText("G2 on Thu 19 Nov");
+    await expect(thisWeek).toContainText("G2");
+    await thisWeek.click();
     await dlg.getByRole("button", { name: "Cancel this class on Thu 19 Nov only" }).click();
     await expect(page.getByRole("status")).toHaveText("Class cancelled for Thu 19 Nov");
     await expect(dlg).toBeHidden();

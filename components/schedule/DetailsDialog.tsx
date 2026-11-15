@@ -2,12 +2,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { cancelSlotOn, restoreSlotOn } from "@/app/admin/actions/slots";
+import { cancelSlotOn, restoreSlotOn, setSlotGroupOn } from "@/app/admin/actions/slots";
 import { toast } from "@/components/Toast";
 import type { ActionResult } from "@/lib/auth";
 import { formatLong, formatShort, manilaToday } from "@/lib/time";
 import type { Course, FileRow, Item, Notice } from "@/lib/types";
-import { isPastNotice, type WeekData } from "@/lib/week";
+import { isPastNotice, slotOn, type WeekData } from "@/lib/week";
 import { KIND, pgTime, Tag, timeSpan } from "./EventCard";
 import s from "./DetailsDialog.module.css";
 
@@ -19,6 +19,7 @@ export const openDetail = (key: DetailKey) => window.dispatchEvent(new CustomEve
 
 type Props = { week: WeekData | null; upcoming: Item[]; upNotices: Notice[]; courses: Course[]; files: FileRow[] | null; isOfficer: boolean };
 
+const GROUPS = [["", "Both"], ["G1", "G1"], ["G2", "G2"]] as const;
 const at = (date: string, time: string | null) => `${formatLong(date)}${time ? `, ${pgTime(time)}` : ""}`;
 
 export default function DetailsDialog({ week, upcoming, upNotices, courses, files, isOfficer }: Props) {
@@ -60,23 +61,37 @@ export default function DetailsDialog({ week, upcoming, upNotices, courses, file
   let foot: React.ReactNode;
   let course: string | undefined, kind = "", title = "", rows: [string, string][] = [], note: Notice | undefined;
   if (key?.t === "slot") {
-    const slot = week?.slots.find((x) => x.id === key.id);
-    if (slot) {
+    const usual = week?.slots.find((x) => x.id === key.id);
+    if (usual && week) {
+      const slot = slotOn(usual, key.date, week);
+      const day = formatShort(key.date);
       course = slot.course_id;
       kind = "Class";
       title = courses.find((c) => c.id === slot.course_id)?.name ?? "Course";
       rows = [
         ["When", `${formatLong(key.date)}, ${timeSpan(slot)}`],
         ["Where", slot.room || "—"],
-        ["Group", slot.lab_group || "Whole class"],
+        ["Group", (slot.lab_group || "Whole class") + (slot.lab_group !== usual.lab_group ? ` (this week only; usually ${usual.lab_group || "whole class"})` : "")],
         ["Repeats", `Every ${formatLong(key.date).split(" ")[0]}`],
       ];
-      foot = <button type="button" className="btn s" disabled={busy} onClick={() => run(() => cancelSlotOn(slot.id, key.date), `Class cancelled for ${formatShort(key.date)}`)}>Cancel this class on {formatShort(key.date)} only</button>;
+      foot = (
+        <>
+          <span>Group on {day}</span>
+          <div className="seg" role="group" aria-label={`Group on ${day}`}>
+            {GROUPS.map(([v, label]) => (
+              <button key={v} type="button" aria-pressed={slot.lab_group === v} disabled={busy}
+                onClick={() => slot.lab_group !== v && run(() => setSlotGroupOn(slot.id, key.date, v), `${label === "Both" ? "Whole class" : label} on ${day}`)}>{label}</button>
+            ))}
+          </div>
+          <button type="button" className="btn s" disabled={busy} onClick={() => run(() => cancelSlotOn(slot.id, key.date), `Class cancelled for ${day}`)}>Cancel this class on {day} only</button>
+        </>
+      );
     }
   } else if (key?.t === "item") {
     const x = items.find((i) => i.id === key.id);
     if (x) {
-      const slot = x.class_slot_id ? week?.slots.find((s) => s.id === x.class_slot_id) : undefined;
+      const usual = x.class_slot_id ? week?.slots.find((s) => s.id === x.class_slot_id) : undefined;
+      const slot = usual && week ? slotOn(usual, x.on_date, week) : undefined;
       course = x.course_id;
       kind = KIND[x.kind];
       title = x.title;

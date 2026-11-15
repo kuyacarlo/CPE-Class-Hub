@@ -1,11 +1,11 @@
-import type { Item, Notice, Slot, Term, TermBreak } from "./types";
+import type { Item, Notice, Slot, SlotGroup, Term, TermBreak } from "./types";
 import { addDays, fromPgTime, sundayOf, weekdayOf } from "./time";
 
 export type Group = "" | "G1" | "G2";
 export type Entry =
   | { t: "slot"; slot: Slot; course: string; m: number }
   | { t: "item"; item: Item; course: string; m: number };
-export type WeekData = { slots: Slot[]; items: Item[]; notices: Notice[]; /** items the notices link to, in any week; only `items` places things on days */ linkedItems: Item[]; term: Term; breaks: TermBreak[] };
+export type WeekData = { slots: Slot[]; items: Item[]; notices: Notice[]; /** items the notices link to, in any week; only `items` places things on days */ linkedItems: Item[]; term: Term; breaks: TermBreak[]; /** one-day group switches */ slotGroups: SlotGroup[] };
 
 const UNTIMED = 9000;
 
@@ -24,14 +24,23 @@ export function termWeek(weekStart: string, term: Term, breaks: TermBreak[]): nu
   return n <= term.week_count ? n : null;
 }
 
+/** The class as it runs on `date`: an officer may have switched its lab group for that day only. */
+export function slotOn(s: Slot, date: string, d: WeekData): Slot {
+  const sw = d.slotGroups.find((x) => x.slot_id === s.id && x.on_date === date);
+  return sw ? { ...s, lab_group: sw.lab_group } : s;
+}
+
 /** A day's weekly classes (none in a break week) and calendar items, both for the visitor's lab group. */
 function dayParts(date: string, d: WeekData, group: Group) {
   const hidden = (s: Slot | undefined) => !!s && otherGroup(s.lab_group, group);
   const isBreak = typeof termWeek(sundayOf(date), d.term, d.breaks) === "string";
   const wd = weekdayOf(date);
-  const slotOf = (i: Item) => (i.class_slot_id ? d.slots.find((s) => s.id === i.class_slot_id) : undefined);
+  const slotOf = (i: Item) => {
+    const s = i.class_slot_id ? d.slots.find((x) => x.id === i.class_slot_id) : undefined;
+    return s && slotOn(s, date, d);
+  };
   const items = d.items.filter((i) => i.on_date === date && !otherGroup(i.lab_group, group) && !hidden(slotOf(i)));
-  const slots = (isBreak ? [] : d.slots).filter((s) => s.weekday === wd && !hidden(s));
+  const slots = (isBreak ? [] : d.slots).filter((s) => s.weekday === wd).map((s) => slotOn(s, date, d)).filter((s) => !hidden(s));
   /** The "No class" item that cancels this class on this day, if any. */
   const cancelledBy = (s: Slot) =>
     d.items.find((i) => i.on_date === date && i.kind === "no_class" && i.course_id === s.course_id && (!i.class_slot_id || i.class_slot_id === s.id));
