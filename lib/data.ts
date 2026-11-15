@@ -43,7 +43,7 @@ export async function loadWeek(weekStart: string): Promise<WeekData> {
   const inWeek = `and(posted_on.gte.${weekStart},posted_on.lte.${weekEnd})`;
   const notices = await run<Notice[]>(
     "calendar",
-    db.from("notices").select("*").or(ids.length ? `${inWeek},calendar_item_id.in.(${ids.join(",")})` : inWeek),
+    db.from("notices").select("*").eq("done", false).or(ids.length ? `${inWeek},calendar_item_id.in.(${ids.join(",")})` : inWeek),
   );
   const linkedIds = notices.flatMap((n) => (n.calendar_item_id ? [n.calendar_item_id] : []));
   const linkedItems = await loadItemsByIds(linkedIds);
@@ -59,11 +59,11 @@ export async function loadUpcoming(today: string): Promise<Item[]> {
   );
 }
 
-/** Notices linked to the given calendar items, so Next up items show theirs too. */
+/** Notices linked to the given calendar items, so Next up items show theirs too. Done notices stay on their course page. */
 export async function loadNoticesForItems(ids: string[]): Promise<Notice[]> {
   if (!ids.length) return [];
   const db = await serverClient();
-  return run("calendar", db.from("notices").select("*").in("calendar_item_id", ids));
+  return run("calendar", db.from("notices").select("*").eq("done", false).in("calendar_item_id", ids));
 }
 
 export async function loadNotices(): Promise<Notice[]> {

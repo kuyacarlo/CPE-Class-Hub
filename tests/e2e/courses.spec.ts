@@ -41,3 +41,8 @@ test("a class's details link to its course page", async ({ page }) => {
   await expect(page).toHaveURL(/\/courses\/MOR$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Methods of Research");
 });
+
+test("a done notice still shows on its course page", async ({ page }) => {
+  await page.goto("/courses/PM");
+  await expect(page.getByRole("region", { name: "Notices" }).getByRole("article").filter({ hasText: "Group list submitted" })).toContainText("Done");
+});

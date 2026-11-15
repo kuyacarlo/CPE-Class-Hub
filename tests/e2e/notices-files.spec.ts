@@ -3,17 +3,14 @@ import { expect, test } from "@playwright/test";
 // Data comes from supabase/seed.sql (run `npx supabase db reset` first).
 const cards = (page: import("@playwright/test").Page) => page.getByRole("article");
 
-test("notices are grouped in course order and done ones are greyed", async ({ page }) => {
+test("notices are grouped in course order, leaving out done ones", async ({ page }) => {
   await page.goto("/notices");
   const all = cards(page);
-  await expect(all).toHaveCount(3);
+  await expect(all).toHaveCount(2); // PM's "Group list submitted" is done, so only its course page shows it
   // Course order is PM, LAWS, ... CNS. Quiz 1 greys after 17 Nov, so its greying isn't checked.
-  await expect(all.nth(0)).toContainText("Group list submitted");
-  await expect(all.nth(0)).toContainText("Done");
-  await expect(all.nth(0)).toHaveClass(/past/);
-  await expect(all.nth(1)).toContainText("Read the code of ethics");
-  await expect(all.nth(1)).not.toHaveClass(/past/);
-  await expect(all.nth(2)).toContainText("Quiz 1 on Tuesday");
+  await expect(all.nth(0)).toContainText("Read the code of ethics");
+  await expect(all.nth(0)).not.toHaveClass(/past/);
+  await expect(all.nth(1)).toContainText("Quiz 1 on Tuesday");
   await expect(all.filter({ hasText: "Quiz 1 on Tuesday" })).toContainText("On the calendar: Quiz/exam, Tue 17 Nov");
 });
 
@@ -22,7 +19,7 @@ test("List view is a table with a Status column and is remembered", async ({ pag
   await page.getByRole("group", { name: "View" }).getByRole("button", { name: "List" }).click();
   await expect(page.getByRole("columnheader", { name: "Status" })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "Date" })).toBeVisible();
-  await expect(page.getByRole("row", { name: /Group list submitted.*Done/ })).toBeVisible();
+  await expect(page.getByRole("row", { name: /Read the code of ethics.*Active/ })).toBeVisible();
   const open = page.getByRole("button", { name: "Read the code of ethics" });
   await expect(page.getByText("Read sections 1 to 3 before Thursday.")).toHaveCount(0);
   await open.click();

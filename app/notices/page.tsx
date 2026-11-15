@@ -17,7 +17,8 @@ export default async function Notices({ searchParams }: { searchParams: Promise<
   const { course } = await searchParams;
   let data;
   try {
-    const [courses, notices] = await Promise.all([loadCourses(), loadNotices()]);
+    // Done notices only show on their course page.
+    const [courses, notices] = await Promise.all([loadCourses(), loadNotices().then((ns) => ns.filter((n) => !n.done))]);
     const items = await loadItemsByIds(notices.flatMap((n) => (n.calendar_item_id ? [n.calendar_item_id] : [])));
     data = { courses, notices, items };
   } catch (e) {
