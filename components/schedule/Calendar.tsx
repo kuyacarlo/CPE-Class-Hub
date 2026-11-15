@@ -52,7 +52,7 @@ function setView(v: View) {
 
 /**
  * The week as a timetable: days across, 7 AM to 8 PM down. Weekly classes are blocks as tall as they last (a cancelled
- * one stays, hatched); timed quizzes and extra classes are marked at their time too. The row under the grid lists each
+ * one is left out); timed quizzes and extra classes are marked at their time too. The row under the grid lists each
  * day's one-off items. Phones choose Day (one day, picked with day tabs) or Week (the whole timetable, scrolled
  * sideways with the hours pinned). `wide` draws the full week at desktop width whatever the screen, for the image
  * download.
@@ -136,8 +136,7 @@ export default function Calendar({ week, courses, sel, today, weekStart, upcomin
                   // Long classes have room for a two-line name; blocks sharing the column drop the room line.
                   const fit = [s.blk, end - start >= 120 && s.tall, b.lanes > 1 && s.narrow].filter(Boolean).join(" ");
                   return (
-                    <EventCard key={id} e={b.e} date={d} course={course(b.e.course)} className={fit} place={place} compact
-                      cancelledBy={b.cancelledBy} next={b.e.t === "item" && id === nextId} noticed={b.e.t === "item" && noticed(id)} />
+                    <EventCard key={id} e={b.e} date={d} course={course(b.e.course)} className={fit} place={place} compact next={b.e.t === "item" && id === nextId} noticed={b.e.t === "item" && noticed(id)} />
                   );
                 })}
               </div>,

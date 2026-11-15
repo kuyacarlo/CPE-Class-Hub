@@ -76,7 +76,11 @@ test("on a phone the Week view shows the whole timetable, scrolled sideways, and
   await expect(cal(page).getByRole("button", { name: /Quiz 1: OSI model/ }).first()).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   const scroller = cal(page).locator('[tabindex="0"]');
-  expect(await scroller.evaluate((el) => el.scrollWidth > el.clientWidth && el.scrollLeft > 0)).toBe(true); // opened on Monday
+  // Opened on today's column when today is in this week, else on Monday.
+  const todayIdx = (Date.parse(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" })) - Date.parse("2026-11-15")) / 864e5;
+  const startIdx = todayIdx >= 0 && todayIdx < 7 ? todayIdx : 1;
+  expect(await scroller.evaluate((el, i) => el.scrollWidth > el.clientWidth
+    && el.scrollLeft === Math.min(el.scrollWidth - el.clientWidth, el.querySelector<HTMLElement>(`[data-day="${i}"]`)!.offsetLeft - el.querySelector<HTMLElement>("[data-hours]")!.offsetWidth), startIdx)).toBe(true);
   await page.reload();
   await expect(views.getByRole("button", { name: "Week" })).toHaveAttribute("aria-pressed", "true");
   await views.getByRole("button", { name: "Day" }).click();

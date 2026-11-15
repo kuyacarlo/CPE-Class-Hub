@@ -58,19 +58,19 @@ export function dayEntries(date: string, d: WeekData, sel: string[], group: Grou
 
 /** shortcut: quizzes and extra classes have a start time but no end, so the timetable draws them an hour long. */
 export const TIMED_MIN = 60;
-export type Block = { e: Entry; start: number; end: number; lane: number; lanes: number; cancelledBy?: Item };
+export type Block = { e: Entry; start: number; end: number; lane: number; lanes: number };
 
 /**
- * A day for the timetable. `blocks` sit in the time grid: every weekly class (a cancelled one stays, with the item
- * that cancels it) and every timed item except "No class"; a quiz or exam during its course's class replaces it. `extras`, for the row under the grid: all of the day's
+ * A day for the timetable. `blocks` sit in the time grid: every weekly class that is not cancelled (its "No class" item
+ * shows only below) and every timed item except "No class"; a quiz or exam during its course's class replaces it. `extras`, for the row under the grid: all of the day's
  * calendar items, timed ones first by time. Minutes are from midnight.
  */
 export function dayTimetable(date: string, d: WeekData, sel: string[], group: Group): { blocks: Block[]; extras: Item[] } {
   const { slots, items, cancelledBy } = dayParts(date, d, group);
   const mine = (course: string) => !sel.length || sel.includes(course);
-  const classes = slots.filter((s) => mine(s.course_id)).map((s) => {
+  const classes = slots.filter((s) => mine(s.course_id) && !cancelledBy(s)).map((s) => {
     const start = fromPgTime(s.starts_at);
-    return { e: { t: "slot", slot: s, course: s.course_id, m: start } as Entry, start, end: fromPgTime(s.ends_at), cancelledBy: cancelledBy(s) };
+    return { e: { t: "slot", slot: s, course: s.course_id, m: start } as Entry, start, end: fromPgTime(s.ends_at) };
   });
   const extras = items.filter((i) => mine(i.course_id)).sort((a, b) => (a.at_time ?? "99").localeCompare(b.at_time ?? "99"));
   const taken = new Set<(typeof classes)[number]>();
@@ -78,7 +78,7 @@ export function dayTimetable(date: string, d: WeekData, sel: string[], group: Gr
     const start = fromPgTime(i.at_time!);
     // A quiz or exam during its own course's class takes over that class's block.
     const host = i.kind === "quiz_exam"
-      ? classes.find((c) => c.e.course === i.course_id && !c.cancelledBy && !taken.has(c) && c.start <= start && start < c.end)
+      ? classes.find((c) => c.e.course === i.course_id && !taken.has(c) && c.start <= start && start < c.end)
       : undefined;
     if (host) taken.add(host);
     return { e: { t: "item", item: i, course: i.course_id, m: start } as Entry, start: host?.start ?? start, end: host?.end ?? start + TIMED_MIN };

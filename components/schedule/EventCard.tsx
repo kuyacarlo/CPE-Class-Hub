@@ -27,32 +27,30 @@ export const Tag =({ c }: { c?: Course }) => (
 );
 
 /**
- * `cancelledBy`: the "No class" item cancelling this class today; the class shows hatched and opens that item.
  * `compact`: the timetable grid's layout, tag and time on the first line, then the name, then group and room.
  */
 type Props = {
-  e: Entry; date: string; course?: Course; next?: boolean; noticed?: boolean; cancelledBy?: Item;
+  e: Entry; date: string; course?: Course; next?: boolean; noticed?: boolean;
   className?: string; place?: React.CSSProperties; compact?: boolean;
 };
 
-export default function EventCard({ e, date, course, next, noticed, cancelledBy, className, place, compact }: Props) {
+export default function EventCard({ e, date, course, next, noticed, className, place, compact }: Props) {
   const cls: (string | false | undefined)[] = [s.ev, className];
   let body: React.ReactNode, open: () => void;
   if (e.t === "slot") {
-    if (cancelledBy) cls.push(s.off);
-    open = cancelledBy ? () => openDetail({ t: "item", id: cancelledBy.id }) : () => openDetail({ t: "slot", id: e.slot.id, date });
+    open = () => openDetail({ t: "slot", id: e.slot.id, date });
     body = compact ? (
       <>
         <span className={s.top}><Tag c={course} /><small>{hm(e.slot.starts_at)}–{hm(e.slot.ends_at)}</small></span>
         <b>{course?.name ?? "Course"}</b>
-        {(cancelledBy || e.slot.lab_group || e.slot.room) && (
-          <small>{[cancelledBy && "No class", e.slot.lab_group, e.slot.room].filter(Boolean).join(" · ")}</small>
+        {(e.slot.lab_group || e.slot.room) && (
+          <small>{[e.slot.lab_group, e.slot.room].filter(Boolean).join(" · ")}</small>
         )}
       </>
     ) : (
       <>
         <b>{course?.name ?? "Course"}</b>
-        <small><i>{cancelledBy ? "No class" : "Class"}{e.slot.lab_group && ` · ${e.slot.lab_group}`}</i>{timeSpan(e.slot)}</small>
+        <small><i>Class{e.slot.lab_group && ` · ${e.slot.lab_group}`}</i>{timeSpan(e.slot)}</small>
         {e.slot.room && <small>{e.slot.room}</small>}
       </>
     );

@@ -92,16 +92,15 @@ describe("dayTimetable", () => {
   const cls = (id: string, course: string, start: string, end: string, lab_group: Slot["lab_group"] = ""): Slot =>
     ({ ...slot(id, course, 2, start, lab_group), ends_at: end });
   const placed = (t: ReturnType<typeof dayTimetable>) =>
-    t.blocks.map((b) => `${b.e.t === "slot" ? b.e.slot.id : b.e.item.id} ${b.start}-${b.end} ${b.lane}/${b.lanes}${b.cancelledBy ? " x" : ""}`);
+    t.blocks.map((b) => `${b.e.t === "slot" ? b.e.slot.id : b.e.item.id} ${b.start}-${b.end} ${b.lane}/${b.lanes}`);
 
-  it("puts classes in the grid by their real times, keeping a cancelled one with the item that cancels it", () => {
+  it("puts classes in the grid by their real times, leaving a cancelled one to the row below", () => {
     const d = data(
       [cls("lec", "a", "07:30:00", "09:00:00"), cls("lab", "b", "13:00:00", "16:00:00")],
       [item("nc", "b", "no_class", "2026-11-17", null, "lab")],
     );
     const t = dayTimetable("2026-11-17", d, [], "");
-    expect(placed(t)).toEqual(["lec 450-540 0/1", "lab 780-960 0/1 x"]);
-    expect(t.blocks[1].cancelledBy?.id).toBe("nc");
+    expect(placed(t)).toEqual(["lec 450-540 0/1"]);
     expect(t.extras.map((i) => i.id)).toEqual(["nc"]);
   });
 
@@ -116,14 +115,14 @@ describe("dayTimetable", () => {
     expect(t.extras.map((i) => i.id)).toEqual(["quiz", "extra", "due"]);
   });
 
-  it("keeps a quiz beside another course's class, and away from a cancelled one", () => {
+  it("keeps a quiz beside another course's class, and in its own slot when its class is cancelled", () => {
     const d = data([cls("other", "b", "09:00:00", "10:30:00"), cls("off", "a", "13:00:00", "16:00:00")], [
       item("quiz", "a", "quiz_exam", "2026-11-17", "09:00:00"),
       item("late", "a", "quiz_exam", "2026-11-17", "13:00:00"),
       item("nc", "a", "no_class", "2026-11-17", null, "off"),
     ]);
     expect(placed(dayTimetable("2026-11-17", d, [], ""))).toEqual(
-      ["other 540-630 0/2", "quiz 540-600 1/2", "off 780-960 0/2 x", "late 780-840 1/2"]);
+      ["other 540-630 0/2", "quiz 540-600 1/2", "late 780-840 0/1"]);
   });
 
   it("splits overlapping G1 and G2 labs side by side, but only for the visitor's group when one is picked", () => {
