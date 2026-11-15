@@ -15,6 +15,8 @@ test("the Courses tab lists all nine courses as cards", async ({ page }) => {
 test("a course page shows its weekly classes (by lab group), notices and files", async ({ page }) => {
   await page.goto("/courses/cns"); // codes match in any case
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Computer Networks and Security");
+  // The title box takes the course's colour (CNS blue), not the plain white of other boxes.
+  expect(await page.getByRole("heading", { level: 1 }).evaluate((h) => getComputedStyle(h.closest(".box")!).backgroundColor)).toBe("rgb(91, 140, 255)");
   const weekly = page.getByRole("region", { name: "Weekly classes" }).getByRole("listitem");
   await expect(weekly).toHaveCount(3);
   await page.getByRole("group", { name: "Lab group" }).getByRole("button", { name: "G1" }).click();
