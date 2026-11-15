@@ -7,7 +7,7 @@ import type { Course, Item, Notice, Slot, Term, TermBreak } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 /**
- * The daily summary, called by Vercel Cron around 7 PM Manila (vercel.json). Vercel sends CRON_SECRET as a Bearer
+ * The daily summary, called by Vercel Cron around 9 PM Manila (vercel.json). Vercel sends CRON_SECRET as a Bearer
  * token. Safe to run twice: claim_push_digests hands out each phone once per Manila day.
  */
 export async function GET(req: Request) {

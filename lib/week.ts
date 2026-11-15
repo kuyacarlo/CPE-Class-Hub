@@ -38,7 +38,7 @@ function dayParts(date: string, d: WeekData, group: Group) {
   return { slots, items, slotOf, cancelledBy };
 }
 
-/** A day as one list in time order (the 7 PM summary and the course counts). A cancelled class is left out; its
+/** A day as one list in time order (the 9 PM summary and the course counts). A cancelled class is left out; its
  * "No class" item stands in for it at the same time. */
 export function dayEntries(date: string, d: WeekData, sel: string[], group: Group): Entry[] {
   const { slots: daySlots, items: dayItems, slotOf, cancelledBy } = dayParts(date, d, group);

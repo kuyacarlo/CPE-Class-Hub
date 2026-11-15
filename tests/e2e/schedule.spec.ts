@@ -55,6 +55,7 @@ test("the timetable sizes classes by length and marks a timed quiz in the grid a
 test("on a phone the day tabs show one day at a time", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/?week=2026-11-15");
+  await cal(page).getByRole("group", { name: "Calendar view" }).getByRole("button", { name: "Day" }).click();
   const tabs = cal(page).getByRole("group", { name: "Day" });
   await tabs.getByRole("button", { name: /Mon/ }).click();
   await expect(cal(page).getByRole("button", { name: /Microprocessors/ }).first()).toBeVisible();
@@ -65,11 +66,11 @@ test("on a phone the day tabs show one day at a time", async ({ page }) => {
   await expect(cal(page).getByRole("button", { name: /Microprocessors/ })).toHaveCount(0);
 });
 
-test("on a phone the Week view shows the whole timetable, scrolled sideways, and is remembered", async ({ page }) => {
+test("a phone opens on the Week view, scrolled sideways; picking Day is remembered", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/?week=2026-11-15");
   const views = cal(page).getByRole("group", { name: "Calendar view" });
-  await views.getByRole("button", { name: "Week" }).click();
+  await expect(views.getByRole("button", { name: "Week" })).toHaveAttribute("aria-pressed", "true");
   await expect(cal(page).getByRole("group", { name: "Day" })).toHaveCount(0); // day tabs only in Day view
   // Monday's and Tuesday's cards are both there at once, and only the timetable scrolls sideways.
   await expect(cal(page).getByRole("button", { name: /Microprocessors/ }).first()).toBeVisible();
@@ -81,9 +82,9 @@ test("on a phone the Week view shows the whole timetable, scrolled sideways, and
   const startIdx = todayIdx >= 0 && todayIdx < 7 ? todayIdx : 1;
   expect(await scroller.evaluate((el, i) => el.scrollWidth > el.clientWidth
     && el.scrollLeft === Math.min(el.scrollWidth - el.clientWidth, el.querySelector<HTMLElement>(`[data-day="${i}"]`)!.offsetLeft - el.querySelector<HTMLElement>("[data-hours]")!.offsetWidth), startIdx)).toBe(true);
-  await page.reload();
-  await expect(views.getByRole("button", { name: "Week" })).toHaveAttribute("aria-pressed", "true");
   await views.getByRole("button", { name: "Day" }).click();
+  await page.reload();
+  await expect(views.getByRole("button", { name: "Day" })).toHaveAttribute("aria-pressed", "true");
   await expect(cal(page).getByRole("group", { name: "Day" })).toBeVisible();
 });
 

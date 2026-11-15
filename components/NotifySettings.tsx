@@ -79,7 +79,7 @@ export default function NotifySettings({ courses }: { courses: Course[] }) {
     } catch {}
     const was = state;
     setState("on");
-    return was === "on" ? "Notification choices saved" : "Notifications on. Summaries come around 7 PM.";
+    return was === "on" ? "Notification choices saved" : "Notifications on. Summaries come around 9 PM.";
   });
 
   const turnOff = () => run(async () => {
@@ -112,7 +112,7 @@ export default function NotifySettings({ courses }: { courses: Course[] }) {
           <button type="button" className={d.x} aria-label="Close" onClick={() => ref.current?.close()}>×</button>
         </div>
         <div className={d.db}>
-          <p>Around 7 PM: tomorrow&apos;s classes, quizzes, due dates and notices. Nothing is sent when tomorrow is free. No account needed.</p>
+          <p>Around 9 PM: tomorrow&apos;s classes, quizzes, due dates and notices. Nothing is sent when tomorrow is free. No account needed.</p>
           {state === "ios-install" && (
             <p className={s.note}>On iPhone or iPad, first add Class Hub to your Home Screen: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open Class Hub from there. Needs iOS 16.4 or later.</p>
           )}

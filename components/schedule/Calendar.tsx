@@ -30,9 +30,10 @@ const VIEW_KEY = "classhub.calendarView";
 const VIEW_EVENT = "classhub:calendarView";
 const readView = (): View => {
   try {
-    return localStorage.getItem(VIEW_KEY) === "week" ? "week" : "day";
+    // Phones open on Week unless the visitor picked Day.
+    return localStorage.getItem(VIEW_KEY) === "day" ? "day" : "week";
   } catch {
-    return "day";
+    return "week";
   }
 };
 const onView = (cb: () => void) => {
@@ -63,7 +64,7 @@ export default function Calendar({ week, courses, sel, today, weekStart, upcomin
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const todayIdx = days.indexOf(today);
   const [picked, pick] = useState(todayIdx >= 0 ? todayIdx : 1); // a weekday index, kept when changing weeks
-  const view = useSyncExternalStore(onView, readView, (): View => "day");
+  const view = useSyncExternalStore(onView, readView, (): View => "week");
   const weekView = !wide && view === "week";
   const scroller = useRef<HTMLDivElement>(null);
   const course = (id: string) => courses.find((c) => c.id === id);

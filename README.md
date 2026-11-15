@@ -51,7 +51,7 @@ You do every sign-up and paste every secret yourself. Do not commit `.env.local`
 ## Phone app and daily notifications
 
 Classmates can add Class Hub to their home screen, and opt in (footer, **Notifications**) to one summary a day, around
-7 PM Manila: tomorrow's classes and calendar items (quizzes, due dates, no-class days, extra classes) and notices
+9 PM Manila: tomorrow's classes and calendar items (quizzes, due dates, no-class days, extra classes) and notices
 dated tomorrow, built the same way the Schedule builds a day. They pick courses and Both / G1 / G2; no account. Nothing
 is sent when tomorrow is empty for them. The service worker (`public/sw.js`) also keeps
 the last Schedule page seen, so Schedule opens offline with a note saying so.
@@ -61,7 +61,7 @@ How it fits together:
 - `push_subscriptions` (migration `0009`) holds each phone's push address and choices. Row-level security is on with
   no policies, so visitors and officers cannot read or change it; only the server's service-role key can.
 - `app/actions/push.ts` saves or removes a subscription. `app/api/cron/digest` sends the summaries.
-- Vercel Cron calls the job once a day (`vercel.json`, `0 11 * * *` = 11:00 UTC = 7 PM Manila). On the free (Hobby)
+- Vercel Cron calls the job once a day (`vercel.json`, `0 13 * * *` = 13:00 UTC = 9 PM Manila). On the free (Hobby)
   plan Vercel runs it at any point within that hour, so summaries arrive between 7:00 and 7:59 PM. Cron runs only on
   production deployments, and Vercel does not retry a failed run.
 - The job is safe to run twice: `claim_push_digests` gives each phone at most one summary per Manila day. Phones whose
