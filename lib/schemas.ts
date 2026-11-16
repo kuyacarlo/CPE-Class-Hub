@@ -68,6 +68,12 @@ export const slotSchema = z
   .refine((s) => s.ends_at > s.starts_at, { path: ["ends_at"], message: "End time must be after the start time" })
   .transform((s) => ({ ...s, starts_at: toPgTime(s.starts_at), ends_at: toPgTime(s.ends_at) }));
 
+/** A class's hours for one day. */
+export const hoursSchema = z
+  .object({ starts_at: minutes, ends_at: minutes })
+  .refine((s) => s.ends_at > s.starts_at, { path: ["ends_at"], message: "End time must be after the start time" })
+  .transform((s) => ({ starts_at: toPgTime(s.starts_at), ends_at: toPgTime(s.ends_at) }));
+
 export const fileSchema = z.object({
   course_id: z.string().transform((v) => v || null),
   title: text(1, 120),

@@ -21,7 +21,7 @@ const notice = (id: string, over: Partial<Notice> = {}): Notice => ({
 });
 const data = (slots: Slot[] = [], items: Item[] = [], notices: Notice[] = []): DigestData => ({
   courses: [course("cns", "CNS"), course("mor", "MOR")],
-  week: { slots, items, notices, linkedItems: [], term: TERM, breaks: BREAKS, slotGroups: [] },
+  week: { slots, items, notices, linkedItems: [], term: TERM, breaks: BREAKS, slotChanges: [] },
 });
 const sub = (over: { courses?: string[]; lab_group?: "" | "G1" | "G2" } = {}) => ({ courses: [], lab_group: "" as const, ...over });
 const lines = (d: ReturnType<typeof buildDigest>) => d?.body.split("\n") ?? [];

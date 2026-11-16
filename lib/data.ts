@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { SORT_COOKIE, type AdminSort } from "./sort";
 import { serverClient } from "./supabase/server";
 import { addDays } from "./time";
-import type { Course, FileRow, Item, Notice, Slot, SlotGroup, Term, TermBreak } from "./types";
+import type { Course, FileRow, Item, Notice, Slot, SlotChange, Term, TermBreak } from "./types";
 import type { WeekData } from "./week";
 
 /** One block failed to load; the page shows "Couldn't load the {what}. Try again." for that block only. */
@@ -32,12 +32,12 @@ export async function loadCourses(): Promise<Course[]> {
 export async function loadWeek(weekStart: string): Promise<WeekData> {
   const db = await serverClient();
   const weekEnd = addDays(weekStart, 6);
-  const [slots, items, term, breaks, slotGroups] = await Promise.all([
+  const [slots, items, term, breaks, slotChanges] = await Promise.all([
     run<Slot[]>("calendar", db.from("class_slots").select("*").order("starts_at")),
     run<Item[]>("calendar", db.from("calendar_items").select("*").gte("on_date", weekStart).lte("on_date", weekEnd)),
     run<Term>("calendar", db.from("term").select("starts_on, week_count").single()),
     run<TermBreak[]>("calendar", db.from("term_breaks").select("starts_on, label").order("starts_on")),
-    run<SlotGroup[]>("calendar", db.from("slot_groups").select("slot_id, on_date, lab_group").gte("on_date", weekStart).lte("on_date", weekEnd)),
+    run<SlotChange[]>("calendar", db.from("slot_groups").select("slot_id, on_date, lab_group, starts_at, ends_at").gte("on_date", weekStart).lte("on_date", weekEnd)),
   ]);
   const ids = items.map((i) => i.id);
   const inWeek = `and(posted_on.gte.${weekStart},posted_on.lte.${weekEnd})`;
@@ -47,7 +47,7 @@ export async function loadWeek(weekStart: string): Promise<WeekData> {
   );
   const linkedIds = notices.flatMap((n) => (n.calendar_item_id ? [n.calendar_item_id] : []));
   const linkedItems = await loadItemsByIds(linkedIds);
-  return { slots, items, notices, linkedItems, term, breaks, slotGroups };
+  return { slots, items, notices, linkedItems, term, breaks, slotChanges };
 }
 
 export async function loadUpcoming(today: string): Promise<Item[]> {

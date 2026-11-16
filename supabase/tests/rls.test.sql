@@ -1,5 +1,5 @@
 begin;
-select plan(34);
+select plan(36);
 
 -- Setup as superuser: two test officers.
 insert into officers (email, role) values
@@ -125,8 +125,12 @@ set local role authenticated;
 set local request.jwt.claims = '{"email":"officer@test.local"}';
 select lives_ok($$insert into slot_groups (slot_id, on_date, lab_group) values ((select id from aslot), current_date, 'G1')$$,
   'officer switches a class''s group for a day');
+select lives_ok($$insert into slot_groups (slot_id, on_date, starts_at, ends_at) values ((select id from aslot), current_date + 7, '15:00', '17:00')$$,
+  'officer changes a class''s hours for a day, keeping its group');
+select throws_ok($$insert into slot_groups (slot_id, on_date, starts_at, ends_at) values ((select id from aslot), current_date + 14, '17:00', '15:00')$$,
+  '23514', null, 'hours ending before they start are refused');
 set local role anon;
-select is((select count(*)::int from slot_groups), 1, 'anon reads group switches');
+select is((select count(*)::int from slot_groups), 2, 'anon reads one-day changes');
 reset role;
 
 select * from finish();

@@ -42,6 +42,23 @@ test.describe("officer", () => {
     await dlg.getByRole("group", { name: "Group on Thu 19 Nov" }).getByRole("button", { name: "G2" }).click();
     await expect(page.getByRole("status")).toHaveText("G2 on Thu 19 Nov");
     await expect(thisWeek).toContainText("G2");
+    // Move this week's class later; the next week keeps 5–6 PM.
+    await thisWeek.click();
+    const hours = dlg.getByRole("form", { name: "Hours on Thu 19 Nov" });
+    await hours.getByLabel("Starts").fill("6:00 PM");
+    await hours.getByLabel("Ends").fill("5:30 PM");
+    await hours.getByRole("button", { name: "Change hours on Thu 19 Nov" }).click();
+    await expect(page.getByRole("status")).toHaveText("End time must be after the start time");
+    await hours.getByLabel("Ends").fill("7:30 PM");
+    await hours.getByRole("button", { name: "Change hours on Thu 19 Nov" }).click();
+    await expect(page.getByRole("status")).toHaveText("Hours changed for Thu 19 Nov");
+    await expect(thisWeek).toContainText("6:00–7:30");
+    await expect(await card("2026-11-22")).toContainText("5:00–6:00");
+    await (await card("2026-11-15")).click();
+    await expect(dlg).toContainText("6:00–7:30 PM (this week only; usually 5:00–6:00 PM)");
+    await dlg.getByRole("button", { name: "Back to usual hours" }).click();
+    await expect(page.getByRole("status")).toHaveText("Usual hours on Thu 19 Nov");
+    await expect(thisWeek).toContainText("5:00–6:00");
     await thisWeek.click();
     await dlg.getByRole("button", { name: "Cancel this class on Thu 19 Nov only" }).click();
     await expect(page.getByRole("status")).toHaveText("Class cancelled for Thu 19 Nov");

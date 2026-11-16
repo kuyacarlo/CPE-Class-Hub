@@ -1,11 +1,11 @@
-import type { Item, Notice, Slot, SlotGroup, Term, TermBreak } from "./types";
+import type { Item, Notice, Slot, SlotChange, Term, TermBreak } from "./types";
 import { addDays, fromPgTime, sundayOf, weekdayOf } from "./time";
 
 export type Group = "" | "G1" | "G2";
 export type Entry =
   | { t: "slot"; slot: Slot; course: string; m: number }
   | { t: "item"; item: Item; course: string; m: number };
-export type WeekData = { slots: Slot[]; items: Item[]; notices: Notice[]; /** items the notices link to, in any week; only `items` places things on days */ linkedItems: Item[]; term: Term; breaks: TermBreak[]; /** one-day group switches */ slotGroups: SlotGroup[] };
+export type WeekData = { slots: Slot[]; items: Item[]; notices: Notice[]; /** items the notices link to, in any week; only `items` places things on days */ linkedItems: Item[]; term: Term; breaks: TermBreak[]; /** one-day group and hour changes */ slotChanges: SlotChange[] };
 
 const UNTIMED = 9000;
 
@@ -24,10 +24,10 @@ export function termWeek(weekStart: string, term: Term, breaks: TermBreak[]): nu
   return n <= term.week_count ? n : null;
 }
 
-/** The class as it runs on `date`: an officer may have switched its lab group for that day only. */
+/** The class as it runs on `date`: an officer may have changed its lab group or hours for that day only. */
 export function slotOn(s: Slot, date: string, d: WeekData): Slot {
-  const sw = d.slotGroups.find((x) => x.slot_id === s.id && x.on_date === date);
-  return sw ? { ...s, lab_group: sw.lab_group } : s;
+  const c = d.slotChanges.find((x) => x.slot_id === s.id && x.on_date === date);
+  return c ? { ...s, lab_group: c.lab_group ?? s.lab_group, starts_at: c.starts_at ?? s.starts_at, ends_at: c.ends_at ?? s.ends_at } : s;
 }
 
 /** A day's weekly classes (none in a break week) and calendar items, both for the visitor's lab group. */

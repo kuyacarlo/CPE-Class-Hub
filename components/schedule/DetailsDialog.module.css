@@ -24,3 +24,6 @@
 .foot{border-top:2px solid var(--ink);padding-top:12px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .foot p{font-size:13px;font-weight:700;color:var(--muted);width:100%}
 .course{font-weight:700;text-underline-offset:3px}
+.hours{width:100%;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end}
+.hours label{display:grid;gap:4px;font-size:13px;font-weight:700}
+.hours input{width:110px;height:38px;padding:0 10px;background:#fff;border:2px solid var(--ink);border-radius:8px;font-size:15px;font-weight:400}

@@ -1,6 +1,6 @@
 "use server";
 import { withOfficer, type ActionResult } from "@/lib/auth";
-import { slotSchema } from "@/lib/schemas";
+import { hoursSchema, slotSchema } from "@/lib/schemas";
 import { serverClient } from "@/lib/supabase/server";
 import { weekdayOf } from "@/lib/time";
 
@@ -47,18 +47,37 @@ export async function restoreSlotOn(itemId: string): Promise<ActionResult> {
   });
 }
 
-/** Switches one class's lab group for one day only. Picking the class's usual group removes the switch. */
-export async function setSlotGroupOn(slotId: string, date: string, group: string): Promise<ActionResult> {
+type SlotRow = { weekday: number; lab_group: string; starts_at: string; ends_at: string };
+type Change = { lab_group?: string | null; starts_at?: string | null; ends_at?: string | null };
+
+/** Saves part of one class's one-day change. `change` gets the class and returns null for "back to usual"; a row left
+ * with nothing changed is removed. */
+async function saveChange(slotId: string, date: string, change: (slot: SlotRow) => Change): Promise<ActionResult> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, message: "Pick a valid date" };
-  if (!["", "G1", "G2"].includes(group)) return { ok: false, message: "Pick Both, G1 or G2" };
   return withOfficer(async () => {
     const db = await serverClient();
-    const { data: slot, error } = await db.from("class_slots").select("weekday, lab_group").eq("id", slotId).single();
+    const { data: slot, error } = await db.from("class_slots").select("weekday, lab_group, starts_at, ends_at").eq("id", slotId).single();
     if (error) throw error;
     if (slot.weekday !== weekdayOf(date)) throw new Error("Date is not on the class's weekday");
-    const { error: e2 } = group === slot.lab_group
-      ? await db.from("slot_groups").delete().eq("slot_id", slotId).eq("on_date", date)
-      : await db.from("slot_groups").upsert({ slot_id: slotId, on_date: date, lab_group: group });
+    const { error: e2 } = await db.from("slot_groups").upsert({ slot_id: slotId, on_date: date, ...change(slot) });
     if (e2) throw e2;
+    const { error: e3 } = await db.from("slot_groups").delete().eq("slot_id", slotId).eq("on_date", date)
+      .is("lab_group", null).is("starts_at", null).is("ends_at", null);
+    if (e3) throw e3;
   });
+}
+
+/** Switches one class's lab group for one day only. Picking the class's usual group removes the switch. */
+export async function setSlotGroupOn(slotId: string, date: string, group: string): Promise<ActionResult> {
+  if (!["", "G1", "G2"].includes(group)) return { ok: false, message: "Pick Both, G1 or G2" };
+  return saveChange(slotId, date, (slot) => ({ lab_group: group === slot.lab_group ? null : group }));
+}
+
+/** Changes one class's hours for one day only, for example "3:00 PM" to "5:00 PM". The usual hours remove the change. */
+export async function setSlotHoursOn(slotId: string, date: string, starts: string, ends: string): Promise<ActionResult> {
+  const p = hoursSchema.safeParse({ starts_at: starts, ends_at: ends });
+  if (!p.success) return { ok: false, message: p.error.issues[0].message };
+  const { starts_at, ends_at } = p.data;
+  return saveChange(slotId, date, (slot) =>
+    starts_at === slot.starts_at && ends_at === slot.ends_at ? { starts_at: null, ends_at: null } : { starts_at, ends_at });
 }

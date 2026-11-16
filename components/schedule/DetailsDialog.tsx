@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { cancelSlotOn, restoreSlotOn, setSlotGroupOn } from "@/app/admin/actions/slots";
+import { cancelSlotOn, restoreSlotOn, setSlotGroupOn, setSlotHoursOn } from "@/app/admin/actions/slots";
 import { toast } from "@/components/Toast";
 import type { ActionResult } from "@/lib/auth";
 import { formatLong, formatShort, manilaToday } from "@/lib/time";
@@ -65,11 +65,13 @@ export default function DetailsDialog({ week, upcoming, upNotices, courses, file
     if (usual && week) {
       const slot = slotOn(usual, key.date, week);
       const day = formatShort(key.date);
+      const moved = slot.starts_at !== usual.starts_at || slot.ends_at !== usual.ends_at;
+      const setHours = (a: string, b: string, done: string) => run(() => setSlotHoursOn(slot.id, key.date, a, b), done);
       course = slot.course_id;
       kind = "Class";
       title = courses.find((c) => c.id === slot.course_id)?.name ?? "Course";
       rows = [
-        ["When", `${formatLong(key.date)}, ${timeSpan(slot)}`],
+        ["When", `${formatLong(key.date)}, ${timeSpan(slot)}` + (moved ? ` (this week only; usually ${timeSpan(usual)})` : "")],
         ["Where", slot.room || "—"],
         ["Group", (slot.lab_group || "Whole class") + (slot.lab_group !== usual.lab_group ? ` (this week only; usually ${usual.lab_group || "whole class"})` : "")],
         ["Repeats", `Every ${formatLong(key.date).split(" ")[0]}`],
@@ -83,6 +85,20 @@ export default function DetailsDialog({ week, upcoming, upNotices, courses, file
                 onClick={() => slot.lab_group !== v && run(() => setSlotGroupOn(slot.id, key.date, v), `${label === "Both" ? "Whole class" : label} on ${day}`)}>{label}</button>
             ))}
           </div>
+          <form key={`${slot.id}${key.date}${slot.starts_at}${slot.ends_at}`} className={s.hours} aria-label={`Hours on ${day}`}
+            onSubmit={(ev) => {
+              ev.preventDefault();
+              const f = new FormData(ev.currentTarget);
+              setHours(String(f.get("starts")), String(f.get("ends")), `Hours changed for ${day}`);
+            }}>
+            <label>Starts<input name="starts" defaultValue={pgTime(slot.starts_at)} placeholder="3:00 PM" /></label>
+            <label>Ends<input name="ends" defaultValue={pgTime(slot.ends_at)} placeholder="5:00 PM" /></label>
+            <button className="btn s" disabled={busy}>Change hours on {day}</button>
+            {moved && (
+              <button type="button" className="btn s" disabled={busy}
+                onClick={() => setHours(pgTime(usual.starts_at), pgTime(usual.ends_at), `Usual hours on ${day}`)}>Back to usual hours</button>
+            )}
+          </form>
           <button type="button" className="btn s" disabled={busy} onClick={() => run(() => cancelSlotOn(slot.id, key.date), `Class cancelled for ${day}`)}>Cancel this class on {day} only</button>
         </>
       );
