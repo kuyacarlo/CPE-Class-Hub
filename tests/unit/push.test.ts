@@ -37,9 +37,10 @@ describe("buildDigest", () => {
     expect(d?.url).toBe("/?week=2026-11-15");
   });
 
-  it("leaves out a cancelled class and lists its No class item at the class time", () => {
-    const d = buildDigest(sub(), data([slot("s1")], [item("No class", { kind: "no_class", class_slot_id: "s1" })]), TODAY);
-    expect(lines(d)).toEqual(["9:00 AM · CNS No class: No class"]);
+  it("leaves out a cancelled class and its No class item", () => {
+    const d = data([slot("s1"), slot("s2", { course_id: "mor" })], [item("No class", { kind: "no_class", class_slot_id: "s1" })]);
+    expect(lines(buildDigest(sub(), d, TODAY))).toEqual(["9:00 AM · MOR class"]);
+    expect(buildDigest(sub({ courses: ["cns"] }), d, TODAY)).toBeNull(); // only a cancelled class: nothing to send
   });
 
   it("keeps only the phone's courses; empty means every course", () => {
@@ -51,30 +52,27 @@ describe("buildDigest", () => {
   it("G1 and G2 phones skip the other group's classes, items and notices; whole-class ones reach both", () => {
     const d = data(
       [slot("all", { starts_at: "08:00:00" }), slot("g1", { lab_group: "G1", room: "Lab 2" }), slot("g2", { lab_group: "G2", starts_at: "13:00:00" })],
-      [item("G2 quiz", { lab_group: "G2", at_time: "15:00:00" })],
-      [notice("G1 notice", { lab_group: "G1" })],
+      [item("G2 quiz", { lab_group: "G2", at_time: "15:00:00" }), item("Essay", { kind: "due", at_time: "17:00:00" })],
+      [notice("G1 notice", { lab_group: "G1", calendar_item_id: "Essay" })],
     );
     expect(lines(buildDigest(sub({ lab_group: "G1" }), d, TODAY))).toEqual(
-      ["8:00 AM · CNS class", "9:00 AM · CNS class (G1, Lab 2)", "Notice · CNS: G1 notice"]);
+      ["8:00 AM · CNS class", "9:00 AM · CNS class (G1, Lab 2)", "5:00 PM · CNS Due: Essay (notice: G1 notice)"]);
     expect(lines(buildDigest(sub({ lab_group: "G2" }), d, TODAY))).toEqual(
-      ["8:00 AM · CNS class", "1:00 PM · CNS class (G2)", "3:00 PM · CNS Quiz/exam: G2 quiz"]);
+      ["8:00 AM · CNS class", "1:00 PM · CNS class (G2)", "3:00 PM · CNS Quiz/exam: G2 quiz", "5:00 PM · CNS Due: Essay"]);
     expect(lines(buildDigest(sub(), d, TODAY))).toHaveLength(5);
   });
 
-  it("lists notices dated tomorrow once; a notice on tomorrow's item rides on that item's line", () => {
+  it("shows a notice only on its quiz/exam or due date line; other notices are left out", () => {
     const quiz = item("Quiz 2");
-    const d = buildDigest(sub(), data([], [quiz], [
+    const extra = item("Makeup lab", { kind: "extra_class", at_time: "17:00:00" });
+    const d = buildDigest(sub(), data([], [quiz, extra], [
       notice("Tomorrow's"),
-      notice("Today's", { posted_on: TODAY }),
-      notice("Done", { done: true }),
       notice("Bring a pen", { calendar_item_id: quiz.id, posted_on: TODAY }),
+      notice("Room change", { calendar_item_id: extra.id }),
       notice("About next week", { calendar_item_id: "elsewhere" }),
     ]), TODAY);
-    expect(lines(d)).toEqual([
-      "CNS Quiz/exam: Quiz 2 (notice: Bring a pen)",
-      "Notice · CNS: Tomorrow's",
-      "Notice · CNS: About next week",
-    ]);
+    expect(lines(d)).toEqual(["5:00 PM · CNS Extra class: Makeup lab", "CNS Quiz/exam: Quiz 2 (notice: Bring a pen)"]);
+    expect(buildDigest(sub(), data([], [], [notice("Tomorrow's")]), TODAY)).toBeNull();
   });
 
   it("has no classes in a break week, but still lists that day's items", () => {

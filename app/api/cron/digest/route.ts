@@ -29,7 +29,7 @@ export async function GET(req: Request) {
   if (!subs.length) return Response.json({ claimed: 0, sent: 0, skipped: 0, failed: 0, removed: 0 });
 
   // Tomorrow, the way the Schedule builds a day: every weekly slot, tomorrow's calendar items, the term and its breaks;
-  // then notices dated tomorrow or linked to one of tomorrow's items.
+  // then the notices linked to tomorrow's items.
   const tomorrow = addDays(today, 1);
   const [courses, slots, items, term, breaks, slotChanges] = await Promise.all([
     db.from("courses").select("*"),
@@ -42,8 +42,7 @@ export async function GET(req: Request) {
   const failed = courses.error ?? slots.error ?? items.error ?? term.error ?? breaks.error ?? slotChanges.error;
   if (failed) return Response.json({ error: failed.message }, { status: 500 });
   const ids = (items.data as Item[]).map((i) => i.id);
-  const notices = await db.from("notices").select("*").eq("done", false)
-    .or(ids.length ? `posted_on.eq.${tomorrow},calendar_item_id.in.(${ids.join(",")})` : `posted_on.eq.${tomorrow}`);
+  const notices = await db.from("notices").select("*").eq("done", false).in("calendar_item_id", ids);
   if (notices.error) return Response.json({ error: notices.error.message }, { status: 500 });
   const data = {
     courses: courses.data as Course[],

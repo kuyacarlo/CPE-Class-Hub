@@ -1,19 +1,19 @@
 import { addDays, formatShort, formatTime, fromPgTime, sundayOf } from "./time";
-import { KIND, type Course, type Notice } from "./types";
+import { KIND, type Course } from "./types";
 import { dayEntries, otherGroup, type Group, type WeekData } from "./week";
 
 /** One phone's daily-summary choices, as claimed by claim_push_digests. `courses` empty = every course. */
 export type PushSub = { endpoint: string; p256dh: string; auth: string; courses: string[]; lab_group: Group };
 export type Digest = { title: string; body: string; url: string };
-/** Tomorrow's data: all weekly slots, tomorrow's calendar items, tomorrow's notices, the term and its breaks. */
+/** Tomorrow's data: all weekly slots, tomorrow's calendar items, the notices linked to them, the term and its breaks. */
 export type DigestData = { courses: Course[]; week: WeekData };
 
 const MAX_LINES = 6;
 
 /**
- * Tomorrow, for one phone, or null when it has nothing tomorrow: its classes and calendar items (the same day the
- * Schedule shows, so cancelled classes, breaks and lab groups match), then notices dated tomorrow. A notice linked to
- * one of tomorrow's items rides on that item's line instead of its own. `today` is the Manila date.
+ * Tomorrow, for one phone, or null when it has nothing tomorrow: its classes, extra classes, quizzes/exams and due dates
+ * (the same day the Schedule shows, so cancelled classes, breaks and lab groups match). "No class" items are left out,
+ * and a notice only shows on the line of the quiz/exam or due date it is linked to. `today` is the Manila date.
  */
 export function buildDigest(sub: Pick<PushSub, "courses" | "lab_group">, d: DigestData, today: string): Digest | null {
   const tomorrow = addDays(today, 1);
@@ -21,9 +21,8 @@ export function buildDigest(sub: Pick<PushSub, "courses" | "lab_group">, d: Dige
   const notices = d.week.notices.filter(
     (n) => !n.done && (!sub.courses.length || sub.courses.includes(n.course_id)) && !otherGroup(n.lab_group, sub.lab_group),
   );
-  const entries = dayEntries(tomorrow, d.week, sub.courses, sub.lab_group);
-  const shownItems = new Set(entries.flatMap((e) => (e.t === "item" ? [e.item.id] : [])));
-  const noteOf = (id: string) => notices.find((n) => n.calendar_item_id === id);
+  const entries = dayEntries(tomorrow, d.week, sub.courses, sub.lab_group).filter((e) => e.t === "slot" || e.item.kind !== "no_class");
+  const noted = new Set(["quiz_exam", "due"]);
 
   const lines = entries.map((e) => {
     if (e.t === "slot") {
@@ -33,11 +32,9 @@ export function buildDigest(sub: Pick<PushSub, "courses" | "lab_group">, d: Dige
     }
     const x = e.item;
     const time = x.at_time ? formatTime(fromPgTime(x.at_time)) : x.class_slot_id ? formatTime(e.m) : "";
-    const note = noteOf(x.id);
+    const note = noted.has(x.kind) ? notices.find((n) => n.calendar_item_id === x.id) : undefined;
     return `${time ? `${time} · ` : ""}${code(x.course_id)} ${KIND[x.kind]}: ${x.title}${note ? ` (notice: ${note.title})` : ""}`;
   });
-  const own = (n: Notice) => n.posted_on === tomorrow && !(n.calendar_item_id && shownItems.has(n.calendar_item_id));
-  lines.push(...notices.filter(own).map((n) => `Notice · ${code(n.course_id)}: ${n.title}`));
   if (!lines.length) return null;
 
   const more = lines.length - MAX_LINES;
