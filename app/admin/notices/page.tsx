@@ -28,7 +28,8 @@ export default async function AdminNotices({ searchParams }: { searchParams: Pro
       count={notices.length}
       sort={sort}
     >
-      {sortRows(notices, sort, courses.map((c) => c.id)).map((n) => {
+      {/* Done notices go last in either order; the sort is stable, so each part keeps the chosen order. */}
+      {sortRows(notices, sort, courses.map((c) => c.id)).sort((a, b) => Number(a.done) - Number(b.done)).map((n) => {
         const x = items.find((i) => i.id === n.calendar_item_id);
         const past = isPastNotice(n, items, today);
         return (

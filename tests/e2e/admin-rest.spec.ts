@@ -90,6 +90,19 @@ test.describe("head officer", () => {
     await expect(sort.getByRole("button", { name: "By course" })).toHaveAttribute("aria-pressed", "true");
   });
 
+  test("done notices sit at the bottom of the notices list in either sort", async ({ page }) => {
+    await page.goto("/admin/notices");
+    const list = page.getByRole("region", { name: "Notices" });
+    const titles = list.locator("b");
+    for (const name of ["By course", "Most recent"]) {
+      await list.getByRole("group", { name: "Sort" }).getByRole("button", { name }).click();
+      await expect(list.getByRole("group", { name: "Sort" }).getByRole("button", { name })).toHaveAttribute("aria-pressed", "true");
+      // "Group list submitted" is PM's (the first course's) only notice and is done, so by course it would lead.
+      await expect(titles.last()).toContainText("Group list submitted");
+      await expect(titles.first()).not.toContainText("Group list submitted");
+    }
+  });
+
   test("semester: change the weeks, add and remove a break, refuse bad breaks", async ({ page }) => {
     await page.goto("/admin/courses");
     const sem = page.getByRole("form", { name: "Semester" });
