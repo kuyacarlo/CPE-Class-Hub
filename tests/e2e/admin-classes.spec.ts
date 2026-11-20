@@ -67,6 +67,9 @@ test.describe("officer", () => {
     await expect(thisWeek).toHaveCount(0);
     const off = page.getByRole("region", { name: "Calendar" }).getByRole("button").filter({ hasText: "No class · G2" });
     await expect(off.last()).toBeVisible();
+    // Admin → Calendar leaves it out; only the seed's hand-made No class (PM's faculty meeting) is listed.
+    await page.goto("/admin/calendar");
+    await expect(page.getByRole("region", { name: "Calendar" }).locator("b", { hasText: "No class" })).toHaveCount(1);
     await expect(await card("2026-11-22")).not.toContainText("No class");
 
     await page.goto("/?week=2026-11-15");

@@ -13,17 +13,19 @@ export default async function AdminCalendar({ searchParams }: { searchParams: Pr
   const { edit } = await searchParams;
   const [courses, items, notices, sort] = await Promise.all([loadCourses(), loadItems(), loadNotices(), loadSort("calendar")]);
   const today = manilaToday();
-  const editing = items.find((x) => x.id === edit);
+  // A class cancelled for one day ("Cancel this class") is undone with Restore on the Schedule, so it stays off this list.
+  const listed = items.filter((x) => !x.class_slot_id);
+  const editing = listed.find((x) => x.id === edit);
 
   return (
     <AdminPage
       tab="calendar"
       form={<ItemForm key={editing?.id ?? "new"} courses={courses} today={today} item={editing} />}
       list="Calendar"
-      count={items.length}
+      count={listed.length}
       sort={sort}
     >
-      {sortRows(items, sort, courses.map((c) => c.id)).map((x) => (
+      {sortRows(listed, sort, courses.map((c) => c.id)).map((x) => (
         <AdminRow
           key={x.id}
           course={courses.find((c) => c.id === x.course_id)}
