@@ -64,6 +64,7 @@ export const slotSchema = z
     ends_at: minutes,
     room: optText(40),
     lab_group: group,
+    online: checkbox,
   })
   .refine((s) => s.ends_at > s.starts_at, { path: ["ends_at"], message: "End time must be after the start time" })
   .transform((s) => ({ ...s, starts_at: toPgTime(s.starts_at), ends_at: toPgTime(s.ends_at) }));
@@ -122,3 +123,13 @@ export const coursesSchema = z.record(z.string(), z.unknown()).transform((d, ctx
   }
   return rows;
 });
+
+/** A classmate's report about one class on one day, or about one calendar item. */
+export const reportSchema = z
+  .object({
+    slot_id: z.uuid().optional(),
+    date: date.optional(),
+    item_id: z.uuid().optional(),
+    message: text(3, 500),
+  })
+  .refine((r) => (r.slot_id && r.date && !r.item_id) || (r.item_id && !r.slot_id), { message: "Report one class or one item" });

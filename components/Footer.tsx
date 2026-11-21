@@ -30,6 +30,14 @@ export default async function Footer() {
         <div className={s.end}>
           {courses && <NotifySettings courses={courses} />}
           {!officer && <Link href="/login">Officer sign in</Link>}
+          {officer && (
+            // On phones the header has no room for these.
+            <span className={`ph ${s.officer}`}>
+              <span>{officer.name}</span>
+              <Link href="/admin">Admin</Link>
+              <form action="/auth/signout" method="post"><button className={s.out}>Sign out</button></form>
+            </span>
+          )}
           <span>v{pkg.version}</span>
         </div>
       </div>

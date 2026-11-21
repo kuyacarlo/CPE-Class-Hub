@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Item, Notice, Slot } from "@/lib/types";
 import {
-  dayEntries, dayTimetable, isPastNotice, lanes, movedFields, nextUp, noticesByCourse, sortNotices, termWeek, type WeekData,
+  dayEntries, dayTimetable, isPastNotice, slotOn, lanes, movedFields, nextUp, noticesByCourse, sortNotices, termWeek, type WeekData,
 } from "@/lib/week";
 
 const term = { starts_on: "2026-11-15", week_count: 18 };
@@ -10,7 +10,7 @@ const breaks = [
   { starts_on: "2026-12-27", label: "New Year break" },
 ];
 const slot = (id: string, course_id: string, weekday: number, starts_at: string, lab_group: Slot["lab_group"] = ""): Slot =>
-  ({ id, course_id, weekday, starts_at, ends_at: "23:00:00", room: null, lab_group });
+  ({ id, course_id, weekday, starts_at, ends_at: "23:00:00", room: null, lab_group, online: false });
 const item = (id: string, course_id: string, kind: Item["kind"], on_date: string, at_time: string | null = null, class_slot_id: string | null = null, lab_group: Item["lab_group"] = ""): Item =>
   ({ created_at: "", id, course_id, kind, title: id, on_date, at_time, notes: null, moved_from_date: null, moved_from_time: null, class_slot_id, lab_group });
 const notice = (id: string, over: Partial<Notice> = {}): Notice =>
@@ -126,15 +126,32 @@ describe("dayTimetable", () => {
   });
 
   it("uses a class's one-day group switch on that day only", () => {
-    const d = { ...data([cls("lab", "a", "13:00:00", "16:00:00", "G2")]), slotChanges: [{ slot_id: "lab", on_date: "2026-11-17", lab_group: "G1" as const, starts_at: null, ends_at: null }] };
+    const d = { ...data([cls("lab", "a", "13:00:00", "16:00:00", "G2")]), slotChanges: [{ slot_id: "lab", on_date: "2026-11-17", lab_group: "G1" as const, starts_at: null, ends_at: null, online: null, room: null, agenda: null }] };
     expect(placed(dayTimetable("2026-11-17", d, [], "G1"))).toEqual(["lab 780-960 0/1"]);
     expect(placed(dayTimetable("2026-11-17", d, [], "G2"))).toEqual([]);
     expect(dayTimetable("2026-11-17", d, [], "").blocks[0].e).toMatchObject({ slot: { lab_group: "G1" } });
     expect(placed(dayTimetable("2026-11-24", d, [], "G2"))).toEqual(["lab 780-960 0/1"]); // the next week is back to G2
   });
 
+  it("uses a class's one-day online switch, either way, and its usual mode otherwise", () => {
+    const ch = (online: boolean | null) => ({ slot_id: "lab", on_date: "2026-11-17", lab_group: null, starts_at: null, ends_at: null, online, room: null, agenda: null });
+    const off = cls("lab", "a", "13:00:00", "16:00:00"), on = { ...off, online: true };
+    expect(slotOn(off, "2026-11-17", { ...data([off]), slotChanges: [ch(true)] }).online).toBe(true);
+    expect(slotOn(on, "2026-11-17", { ...data([on]), slotChanges: [ch(false)] }).online).toBe(false);
+    expect(slotOn(on, "2026-11-17", { ...data([on]), slotChanges: [ch(null)] }).online).toBe(true);
+    expect(slotOn(off, "2026-11-24", { ...data([off]), slotChanges: [ch(true)] }).online).toBe(false);
+  });
+
+  it("uses a class's one-day room and agenda on that day only", () => {
+    const base = { ...cls("lab", "a", "13:00:00", "16:00:00"), room: "ER 204" };
+    const d = { ...data([base]), slotChanges: [{ slot_id: "lab", on_date: "2026-11-17", lab_group: null, starts_at: null, ends_at: null, online: null, room: "Lab 3", agenda: "Orientation" }] };
+    expect(slotOn(base, "2026-11-17", d)).toMatchObject({ room: "Lab 3", agenda: "Orientation" });
+    expect(slotOn(base, "2026-11-24", d)).toMatchObject({ room: "ER 204" });
+    expect(slotOn(base, "2026-11-24", d).agenda).toBeUndefined();
+  });
+
   it("uses a class's one-day hours on that day only", () => {
-    const d = { ...data([cls("lab", "a", "13:00:00", "16:00:00", "G2")]), slotChanges: [{ slot_id: "lab", on_date: "2026-11-17", lab_group: null, starts_at: "15:00:00", ends_at: "17:00:00" }] };
+    const d = { ...data([cls("lab", "a", "13:00:00", "16:00:00", "G2")]), slotChanges: [{ slot_id: "lab", on_date: "2026-11-17", lab_group: null, starts_at: "15:00:00", ends_at: "17:00:00", online: null, room: null, agenda: null }] };
     expect(placed(dayTimetable("2026-11-17", d, [], "G2"))).toEqual(["lab 900-1020 0/1"]); // group unchanged, an hour later
     expect(placed(dayTimetable("2026-11-24", d, [], ""))).toEqual(["lab 780-960 0/1"]);
   });

@@ -1,0 +1,90 @@
+.top{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-bottom:14px}
+.sum{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-bottom:24px}
+/* Week row: title, range, and ‹ Today › */
+.wrow{display:flex;align-items:center;gap:10px}
+.wnav{display:flex;align-items:center;gap:8px;min-width:0}
+.wname{display:grid;min-width:0;text-align:center}
+.wname h1{font:800 22px/1.05 var(--head);letter-spacing:-.02em}
+.range{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arw,.today{height:44px;display:grid;place-items:center;border:var(--bw) solid var(--ink);border-radius:var(--r);background:#fff;box-shadow:2px 2px 0 var(--ink);font-weight:800;text-decoration:none;color:var(--ink);flex:none}
+.arw{width:44px;font-size:22px;line-height:1}
+.today{margin-left:auto;padding:0 14px;font-size:14px}
+.showing{font-size:14px;font-weight:700;margin-top:-6px}
+/* The week strip: seven days, one dot per class */
+.strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.strip button{display:grid;justify-items:center;gap:1px;min-height:58px;padding:5px 0;border:var(--bw) solid transparent;border-radius:10px;background:none;font:inherit;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer}
+.strip b{font:800 18px/1.1 var(--head);color:var(--ink)}
+/* Today's cell says so in place of its weekday letter. */
+.wl{font-size:12px;line-height:1.2}
+.strip [data-today] .wl{color:var(--ink);font-weight:800;font-size:11px}
+.strip [aria-selected=true]{background:#fff;border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.dots{display:flex;gap:3px;height:8px}
+.dots{align-items:center}
+.dots:has(small){gap:2px}
+.dots small{font-size:9px;font-weight:800;line-height:8px;letter-spacing:-.02em;color:var(--ink)}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--c);border:1.5px solid var(--ink)}
+/* The date sheet */
+.sheet{display:grid;grid-template-columns:72px 1fr 72px;align-items:center;text-align:center;background:#fff;border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--ink);padding:14px 10px 16px}
+.mon,.wd{grid-column:1/4;font-weight:800;letter-spacing:.18em;font-size:13px;text-transform:uppercase}
+.wd{margin-top:6px;letter-spacing:.12em}
+.num{font:800 132px/0.9 var(--head);letter-spacing:-.06em;color:var(--c);-webkit-text-stroke:3px var(--ink);paint-order:stroke}
+.fl{display:grid;gap:3px;justify-items:center;font-size:12px;color:var(--muted)}
+.fl i{width:24px;height:24px;border:var(--bw) solid var(--ink);border-radius:6px;background:var(--c)}
+.fl strong{font:800 17px var(--head);color:var(--ink)}
+/* Pager */
+.pager{display:flex;align-items:center;gap:6px;border-top:var(--bw) solid var(--ink);padding-top:10px}
+.pager button{flex:1;height:44px;border:var(--bw) solid var(--ink);border-radius:999px;background:#fff;font:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer}
+.pager [aria-selected=true]{background:var(--ink);color:#fff}
+/* Rows */
+.it{all:unset;box-sizing:border-box;display:grid;grid-template-columns:52px 1fr;gap:10px;width:100%;padding:12px 14px 12px 10px;border-left:8px solid var(--c,var(--ink));cursor:pointer}
+.it:focus-visible{outline:3px solid #2f6bff;outline-offset:-3px}
+.it time{font-weight:800;font-size:13px;line-height:1.3}
+.it b{font-weight:700}
+.it em{display:block;font-style:normal;color:var(--muted);font-size:13px}
+.none,.off{padding:12px 14px;font-size:14px;color:var(--muted)}
+.off{background:repeating-linear-gradient(135deg,#ecebe6 0 2px,#fff 2px 8px)}
+.link{all:unset;cursor:pointer;font-weight:700;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.more{margin-top:10px;font-weight:700}
+/* Short phones: the first class row still shows above the tab bar */
+@media(max-height:700px){
+.sum{gap:8px}
+.showing{margin-top:0}
+.strip button{min-height:48px;padding:2px 0}
+.sheet{padding:8px 8px 10px}
+.num{font-size:88px}
+.wd{margin-top:2px}
+.pager{padding-top:8px}
+}
+/* The date cards are pages of a tear-off calendar, stacked in one grid cell. Going forward, the shown page lifts from
+   the bottom toward the reader (out of the wall, as on a real calendar) and turns up over its top edge, darkening as
+   it turns from the light; its back is never seen, and the
+   next page is already underneath. Going back, the earlier page drops down onto the pad. */
+.pad{display:grid;perspective:900px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.pad>.sheet{grid-area:1/1;position:relative;z-index:1;backface-visibility:hidden}
+.pad>[data-leaving]{z-index:0}
+.pad>.tear{z-index:2}
+/* The page's shade: invisible at rest, darkening as the page turns. Clipped to the card's rounded corners. */
+.pad>.sheet::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--ink);opacity:0;pointer-events:none}
+.panel{touch-action:pan-y}
+@media(prefers-reduced-motion:no-preference){
+.tear{transform-origin:50% 0;animation:tear .42s cubic-bezier(.55,.05,.7,.4) forwards}
+.tear::after{animation:shade .42s ease-in forwards}
+.drop{transform-origin:50% 0;animation:drop .42s cubic-bezier(.3,.6,.45,.95)}
+.drop::after{animation:shade .42s ease-out reverse}
+.rise>*{animation:rise .16s ease-out}
+.fade>*{animation:fade .16s ease-out}
+}
+@keyframes tear{to{transform:rotateX(180deg)}}
+@keyframes drop{from{transform:rotateX(180deg)}}
+@keyframes shade{0%,30%{opacity:0}to{opacity:.55}}
+@keyframes rise{from{transform:translateY(12px);opacity:0}}
+/* Press */
+.strip button:active{transform:translate(1px,1px)}
+.strip [aria-selected=true]:active{transform:translate(3px,3px);box-shadow:none}
+.arw:active,.today:active{transform:translate(2px,2px);box-shadow:none}
+.pager button:active{transform:translate(1px,1px)}
+.it:active{background:var(--soft)}
+@media(prefers-reduced-motion:no-preference){.strip button,.pager button,.arw,.today,.it{transition:transform .08s,box-shadow .08s,background-color .1s}}
+.it em{display:flex;align-items:center;gap:6px} /* the online dots, then "Online" */
+.it em>span{margin-left:0}
+@keyframes fade{from{opacity:0}}

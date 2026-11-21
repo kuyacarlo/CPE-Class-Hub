@@ -105,7 +105,7 @@ test.describe("head officer", () => {
 
   test("semester: change the weeks, add and remove a break, refuse bad breaks", async ({ page }) => {
     await page.goto("/admin/courses");
-    const sem = page.getByRole("form", { name: "Semester" });
+    const sem = page.getByRole("form", { name: "Semester", exact: true });
     await sem.getByLabel("Number of weeks").fill("17");
     await sem.getByRole("button", { name: "Save semester" }).click();
     await expect(page.getByRole("status")).toHaveText("Semester saved");

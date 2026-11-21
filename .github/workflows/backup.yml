@@ -1,0 +1,44 @@
+# Nightly backup of the live database. The repo is public, so the dump is encrypted before it becomes an artifact:
+# anyone signed in to GitHub can download a public repo's artifacts, and the dump holds officer emails and push keys.
+# Needs two repo secrets (README, "Backups"): SUPABASE_DB_URL and BACKUP_PASSPHRASE.
+name: Nightly backup
+
+on:
+  schedule:
+    - cron: "0 18 * * *" # 2 AM in Manila
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          version: 3.0.0
+
+      - name: Dump and encrypt
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::Add the SUPABASE_DB_URL and BACKUP_PASSPHRASE secrets (see the README)"; exit 1
+          fi
+          mkdir dump
+          supabase db dump --db-url "$DB_URL" -f dump/schema.sql
+          supabase db dump --db-url "$DB_URL" --data-only -f dump/data.sql
+          test -s dump/data.sql
+          tar czf - -C dump . | openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:BACKUP_PASSPHRASE -out class-hub-backup.tar.gz.enc
+          rm -rf dump
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: class-hub-backup-${{ github.run_number }}
+          path: class-hub-backup.tar.gz.enc
+          retention-days: 90
+          if-no-files-found: error

@@ -17,10 +17,13 @@ export type Slot = {
   ends_at: string;
   room: string | null;
   lab_group: '' | 'G1' | 'G2';
+  online: boolean;
+  /** What the class does on one day ("Orientation"); only set by slotOn, from that day's change. */
+  agenda?: string | null;
 };
 
-/** A class's group or hours changed for one day only; null keeps the usual value. */
-export type SlotChange = { slot_id: string; on_date: string; lab_group: Slot['lab_group'] | null; starts_at: string | null; ends_at: string | null };
+/** A class's group, hours, online/in person, room or agenda changed for one day only; null keeps the usual value (no agenda). */
+export type SlotChange = { slot_id: string; on_date: string; lab_group: Slot['lab_group'] | null; starts_at: string | null; ends_at: string | null; online: boolean | null; room: string | null; agenda: string | null };
 
 export type Item = {
   created_at: string;
@@ -72,3 +75,6 @@ export const GENERAL = '#22d3ee';
 
 /** Kind labels shown to people. Lives here, not in a client component, so server pages can read it. */
 export const KIND: Record<Item['kind'], string> = { quiz_exam: 'Quiz/exam', due: 'Due', no_class: 'No class', extra_class: 'Extra class' };
+
+/** A classmate's report from "Something wrong?"; `about` names the class or item, built by the server. */
+export type Report = { id: string; created_at: string; course_id: string; about: string; message: string; done: boolean };

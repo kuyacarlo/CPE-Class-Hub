@@ -10,9 +10,11 @@ export default defineConfig({
   projects: [
     { name: "setup", testMatch: /auth\.setup\.ts/ },
     // setup also removes rows a failed admin run left behind, so it goes first.
-    { name: "public", testIgnore: /admin.*\.spec\.ts/, dependencies: ["setup"] },
+    { name: "public", testIgnore: /(admin.*|semester)\.spec\.ts/, dependencies: ["setup"] },
     // Admin tests change shared rows, so they run after the public ones that count them.
     { name: "admin", testMatch: /admin.*\.spec\.ts/, dependencies: ["setup", "public"] },
+    // Starting a new semester wipes the seed, so it runs after everything else, once (a retry would find it wiped).
+    { name: "semester", testMatch: /semester\.spec\.ts/, dependencies: ["admin"], retries: 0 },
   ],
   webServer: {
     command: "npm run dev",

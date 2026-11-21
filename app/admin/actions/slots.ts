@@ -47,8 +47,8 @@ export async function restoreSlotOn(itemId: string): Promise<ActionResult> {
   });
 }
 
-type SlotRow = { weekday: number; lab_group: string; starts_at: string; ends_at: string };
-type Change = { lab_group?: string | null; starts_at?: string | null; ends_at?: string | null };
+type SlotRow = { weekday: number; lab_group: string; starts_at: string; ends_at: string; online: boolean; room: string | null };
+type Change = { lab_group?: string | null; starts_at?: string | null; ends_at?: string | null; online?: boolean | null; room?: string | null; agenda?: string | null };
 
 /** Saves part of one class's one-day change. `change` gets the class and returns null for "back to usual"; a row left
  * with nothing changed is removed. */
@@ -56,13 +56,13 @@ async function saveChange(slotId: string, date: string, change: (slot: SlotRow) 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, message: "Pick a valid date" };
   return withOfficer(async () => {
     const db = await serverClient();
-    const { data: slot, error } = await db.from("class_slots").select("weekday, lab_group, starts_at, ends_at").eq("id", slotId).single();
+    const { data: slot, error } = await db.from("class_slots").select("weekday, lab_group, starts_at, ends_at, online, room").eq("id", slotId).single();
     if (error) throw error;
     if (slot.weekday !== weekdayOf(date)) throw new Error("Date is not on the class's weekday");
     const { error: e2 } = await db.from("slot_groups").upsert({ slot_id: slotId, on_date: date, ...change(slot) });
     if (e2) throw e2;
     const { error: e3 } = await db.from("slot_groups").delete().eq("slot_id", slotId).eq("on_date", date)
-      .is("lab_group", null).is("starts_at", null).is("ends_at", null);
+      .is("lab_group", null).is("starts_at", null).is("ends_at", null).is("online", null).is("room", null).is("agenda", null);
     if (e3) throw e3;
   });
 }
@@ -80,4 +80,18 @@ export async function setSlotHoursOn(slotId: string, date: string, starts: strin
   const { starts_at, ends_at } = p.data;
   return saveChange(slotId, date, (slot) =>
     starts_at === slot.starts_at && ends_at === slot.ends_at ? { starts_at: null, ends_at: null } : { starts_at, ends_at });
+}
+
+/** Makes one class online, or in person, for one day only. The class's usual mode removes the change. */
+export async function setSlotOnlineOn(slotId: string, date: string, online: boolean): Promise<ActionResult> {
+  if (typeof online !== "boolean") return { ok: false, message: "Pick In person or Online" };
+  return saveChange(slotId, date, (slot) => ({ online: online === slot.online ? null : online }));
+}
+
+/** Sets one class's room and agenda for one day only. A blank or usual room keeps the usual room; a blank agenda means none. */
+export async function setSlotRoomAgendaOn(slotId: string, date: string, room: string, agenda: string): Promise<ActionResult> {
+  const r = String(room ?? "").trim(), a = String(agenda ?? "").trim();
+  if (r.length > 40) return { ok: false, message: "Rooms are up to 40 characters" };
+  if (a.length > 40) return { ok: false, message: "Agendas are up to 40 characters" };
+  return saveChange(slotId, date, (slot) => ({ room: !r || r === slot.room ? null : r, agenda: a || null }));
 }

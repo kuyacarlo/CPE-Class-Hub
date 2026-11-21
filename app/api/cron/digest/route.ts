@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     db.from("calendar_items").select("*").eq("on_date", tomorrow),
     db.from("term").select("starts_on, week_count").single(),
     db.from("term_breaks").select("starts_on, label"),
-    db.from("slot_groups").select("slot_id, on_date, lab_group, starts_at, ends_at").eq("on_date", tomorrow),
+    db.from("slot_groups").select("slot_id, on_date, lab_group, starts_at, ends_at, online, room, agenda").eq("on_date", tomorrow),
   ]);
   const failed = courses.error ?? slots.error ?? items.error ?? term.error ?? breaks.error ?? slotChanges.error;
   if (failed) return Response.json({ error: failed.message }, { status: 500 });

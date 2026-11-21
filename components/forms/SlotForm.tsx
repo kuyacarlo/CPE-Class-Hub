@@ -23,7 +23,7 @@ export default function SlotForm({ courses, slot }: { courses: Course[]; slot?: 
   return (
     <form className={`box ${s.panel}${slot ? ` ${s.editing}` : ""}`} aria-label={heading} onSubmit={onSubmit} noValidate>
       <h2>{heading}</h2>
-      <p className={s.hint}>Repeats every week. To cancel one day, open the class on the Schedule.</p>
+      <p className={s.hint}>Repeats every week. To cancel one day or move it online, open the class on the Schedule.</p>
       {slot && <input type="hidden" name="id" value={slot.id} />}
       <CourseSelect courses={courses} value={slot?.course_id} />
       <div className={s.f2}>
@@ -40,6 +40,7 @@ export default function SlotForm({ courses, slot }: { courses: Course[]; slot?: 
       {err("ends_at")}
       <label>Room (optional)<input name="room" defaultValue={slot?.room ?? ""} maxLength={40} /></label>
       {err("room")}
+      <label className={s.c}><input type="checkbox" name="online" defaultChecked={slot?.online} />Online every week</label>
       <button className={`btn p ${s.save}`} disabled={busy}>{slot ? "Save changes" : "Add class"}</button>
       {slot && <Link className={s.cancel} href="/admin/classes" scroll={false}>Cancel editing</Link>}
     </form>

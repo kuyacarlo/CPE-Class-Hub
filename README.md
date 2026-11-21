@@ -107,6 +107,33 @@ For local work, `.env.local` needs the same five names (local values: the servic
 
 If a release breaks the site, open Vercel, Deployments, the previous one, and choose Promote to Production.
 
+## Backups
+
+A GitHub Action (`.github/workflows/backup.yml`) saves the live database every night at 2 AM. The free Supabase plan keeps
+no backups, and Start a new semester can't be undone, so set this up before the semester ends. The repo is public, so
+each backup is encrypted with a passphrase only you hold.
+
+### Set up (once)
+
+1. Supabase: open the project, Connect, and copy the **Session pooler** connection string (GitHub can't reach the
+   direct one). Put the database password in place of `[YOUR-PASSWORD]`.
+2. Make a long passphrase and keep it in your password manager. Without it the backups can't be opened.
+3. GitHub: the repo, Settings, Secrets and variables, Actions. Add `SUPABASE_DB_URL` (step 1) and
+   `BACKUP_PASSPHRASE` (step 2).
+4. Actions, Nightly backup, Run workflow. It should finish green and list a `class-hub-backup-…` artifact. Each one
+   is kept for 90 days.
+
+GitHub pauses scheduled workflows in a public repo after 60 days without a commit, for example over a long break.
+To restart, open Actions, Nightly backup, and press Enable workflow.
+
+### Restore
+
+1. Download the newest artifact from Actions, Nightly backup, and unzip it.
+2. `openssl enc -d -aes-256-cbc -pbkdf2 -in class-hub-backup.tar.gz.enc | tar xzf -` (it asks for the passphrase).
+   This gives `schema.sql` (tables and rules) and `data.sql` (the rows).
+3. Into a new, empty Supabase project: `psql "<its connection string>" -f schema.sql`, then `-f data.sql`. To put
+   back only the rows into the existing project, empty the tables first, then run `data.sql` alone.
+
 ## Keeping the free project awake
 
 A free Supabase project pauses after about a week with no visits. Any visit to the site wakes it. While it wakes, the page says "Class Hub is waking up"; try again in a minute. If it is paused for long, you can also press Restore in the Supabase dashboard.

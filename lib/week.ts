@@ -24,10 +24,10 @@ export function termWeek(weekStart: string, term: Term, breaks: TermBreak[]): nu
   return n <= term.week_count ? n : null;
 }
 
-/** The class as it runs on `date`: an officer may have changed its lab group or hours for that day only. */
+/** The class as it runs on `date`: an officer may have changed its lab group, hours, online/in person, room or agenda for that day only. */
 export function slotOn(s: Slot, date: string, d: WeekData): Slot {
   const c = d.slotChanges.find((x) => x.slot_id === s.id && x.on_date === date);
-  return c ? { ...s, lab_group: c.lab_group ?? s.lab_group, starts_at: c.starts_at ?? s.starts_at, ends_at: c.ends_at ?? s.ends_at } : s;
+  return c ? { ...s, lab_group: c.lab_group ?? s.lab_group, starts_at: c.starts_at ?? s.starts_at, ends_at: c.ends_at ?? s.ends_at, online: c.online ?? s.online, room: c.room ?? s.room, agenda: c.agenda } : s;
 }
 
 /** A day's weekly classes (none in a break week) and calendar items, both for the visitor's lab group. */

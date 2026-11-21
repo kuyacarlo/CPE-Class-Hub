@@ -15,7 +15,10 @@ export default function TermForm({ term, breaks }: { term: Term; breaks: TermBre
     <>
       <form className={`box ${s.panel}`} aria-label="Semester" onSubmit={t.onSubmit} noValidate>
         <h2>Semester</h2>
-        <p className={s.hint}>Week 1 starts on a Sunday. Break weeks don&apos;t count as teaching weeks.</p>
+        <p className={s.hint}>
+          Week 1 starts on a Sunday. Break weeks don&apos;t count as teaching weeks. For the next semester, use Start a new
+          semester below instead, so last semester&apos;s classes and notices are cleared too.
+        </p>
         <div className={s.f2}>
           <label>Week 1 starts<input type="date" name="starts_on" defaultValue={term.starts_on} required /></label>
           <label>Number of weeks<input type="number" name="week_count" defaultValue={term.week_count} min={1} max={52} required /></label>

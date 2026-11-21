@@ -12,5 +12,20 @@
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:20;height:calc(64px + env(safe-area-inset-bottom,0px));padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:#fff;border-top:3px solid var(--ink);gap:4px}
 .nav a{flex:1;justify-content:center;padding:0;font-size:14px}
 }
-/* Signed in on a narrow phone: Admin and Sign out need the room, so the logo stands alone */
-@media(max-width:480px){.top:has(.who) .mark span{display:none}}
+.officer{display:flex;align-items:center;gap:8px}
+/* Phones' header buttons (HeaderTools), on the right: Day/Week and Filter on Schedule, the bell everywhere */
+.tools{display:flex;align-items:center;gap:2px}
+.view{height:40px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:var(--bw) solid var(--ink);border-radius:999px;background:var(--card);font:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;margin-right:4px}
+.view svg{width:18px;height:18px}
+.tool{position:relative;width:44px;height:44px;display:grid;place-items:center;border:0;background:none;border-radius:10px;cursor:pointer;color:var(--ink);padding:0;flex:none}
+.tool svg{width:24px;height:24px}
+.tool[aria-pressed=true]{background:var(--ink);color:#fff}
+.badge{position:absolute;top:2px;right:0;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--ink);color:#fff;font:800 11px/18px system-ui;text-align:center}
+@media(max-width:900px){.top{gap:8px;padding-right:6px}.mark span{font-size:20px;white-space:nowrap}}
+/* Narrow phones on Schedule: the Day/Week and Filter buttons need the room, so the logo stands alone */
+@media(max-width:374px){.top:has(.view) .mark span{display:none}}
+/* Press */
+.tool:active{background:var(--soft);transform:translate(1px,1px)}
+.view:active{transform:translate(1px,1px);background:var(--soft)}
+.nav a:active{transform:translate(1px,1px)}
+@media(prefers-reduced-motion:no-preference){.tool,.view,.nav a{transition:transform .08s,box-shadow .08s,background-color .1s}}

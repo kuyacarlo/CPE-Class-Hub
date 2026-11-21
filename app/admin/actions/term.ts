@@ -1,5 +1,5 @@
 "use server";
-import { withOfficer, type ActionResult } from "@/lib/auth";
+import { NotOfficerError, withOfficer, type ActionResult } from "@/lib/auth";
 import { breakSchema, termSchema } from "@/lib/schemas";
 import { serverClient } from "@/lib/supabase/server";
 import { addDays } from "@/lib/time";
@@ -35,4 +35,18 @@ export async function removeBreak(startsOn: string): Promise<ActionResult> {
     const { error } = await (await serverClient()).from("term_breaks").delete().eq("starts_on", startsOn);
     if (error) throw error;
   });
+}
+
+/** Head officer only: new dates, and last semester cleared (see start_semester). Courses get fresh copies to rename. */
+export async function startSemester(fd: FormData): Promise<ActionResult> {
+  const p = termSchema.safeParse(Object.fromEntries(fd));
+  if (!p.success) return { ok: false, message: p.error.issues[0].message };
+  let refused = "";
+  const r = await withOfficer(async (me) => {
+    if (me.role !== "head") throw new NotOfficerError();
+    const { error } = await (await serverClient()).rpc("start_semester", { new_start: p.data.starts_on, new_weeks: p.data.week_count });
+    if (error?.code === "P0001") refused = error.message; // "The new semester must start after the current one"
+    if (error) throw error;
+  });
+  return refused ? { ok: false, message: refused } : r;
 }

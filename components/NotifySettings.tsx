@@ -1,4 +1,6 @@
 "use client";
+import { installed } from "@/lib/installed";
+import { NOTIFY_EVENT } from "./schedule/HeaderTools";
 import { useEffect, useRef, useState } from "react";
 import { removePush, savePush } from "@/app/actions/push";
 import { toast } from "@/components/Toast";
@@ -12,7 +14,6 @@ const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 type State = "checking" | "unsupported" | "ios-install" | "denied" | "off" | "on";
 
 const isIos = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-const installed = () => matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
 const keyBytes = (b64url: string) => Uint8Array.from(atob(b64url.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
 const swUrl = `/sw.js${process.env.NODE_ENV === "development" ? "?dev=1" : ""}`;
 
@@ -47,9 +48,15 @@ export default function NotifySettings({ courses }: { courses: Course[] }) {
   };
 
   const open = () => {
+    if (ref.current?.open) return;
     ref.current?.showModal();
     check().catch(() => setState("unsupported"));
   };
+  // The phone header's bell opens this panel too.
+  useEffect(() => {
+    window.addEventListener(NOTIFY_EVENT, open);
+    return () => window.removeEventListener(NOTIFY_EVENT, open);
+  });
 
   const run = async (job: () => Promise<string | undefined>) => {
     setBusy(true);

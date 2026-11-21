@@ -2,6 +2,8 @@ import Link from "next/link";
 import FileTable from "@/components/files/FileTable";
 import { noticeRows } from "@/components/notices/NoticeCard";
 import NoticeList from "@/components/notices/NoticeList";
+import NoticeRows from "@/components/notices/NoticeRows";
+import FileRows from "@/components/files/FileRows";
 import DetailsDialog from "@/components/schedule/DetailsDialog";
 import { Tag } from "@/components/schedule/EventCard";
 import GroupSwitch from "@/components/schedule/GroupSwitch";
@@ -66,20 +68,22 @@ export default async function CoursePage({ params }: { params: Promise<{ code: s
         <CourseWeek course={course} slots={weekly} items={upcoming} today={today} />
         <section aria-labelledby="notices">
           <div className={s.sec}><h2 id="notices">Notices</h2><Link href={`/notices?course=${course.code}`}>Open in Notices</Link></div>
-          <div className="box">
+          <div className="box dt">
             {rows.length ? <NoticeList rows={rows} /> : <p className={s.empty}>No notices for {course.code} yet.</p>}
           </div>
+          <div className="ph"><NoticeRows rows={rows} empty={`No notices for ${course.code} yet.`} /></div>
         </section>
       </div>
 
       <section aria-labelledby="files">
         <div className={s.sec}><h2 id="files">Files</h2><Link href={`/files?course=${course.code}`}>Open in Files</Link></div>
-        <div className={`box ${s.files}`}>
+        <div className="ph">{ownFiles.length ? <FileRows files={ownFiles} courses={courses} grouped={false} /> : <p className="box empty">No files for {course.code} yet.</p>}</div>
+        <div className={`box dt ${s.files}`}>
           {ownFiles.length ? <FileTable files={ownFiles} courses={courses} /> : <p className={s.empty}>No files for {course.code} yet.</p>}
         </div>
       </section>
 
-      <DetailsDialog week={null} upcoming={upcoming} upNotices={own} courses={courses} files={files} isOfficer={!!officer} />
+      <DetailsDialog week={null} upcoming={upcoming} upNotices={own} courses={courses} isOfficer={!!officer} />
     </main>
   );
 }

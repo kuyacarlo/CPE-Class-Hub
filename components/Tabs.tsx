@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { Busy, LinkPending } from "./Pending";
 import { savePicks } from "@/components/schedule/PicksSync";
 import { codesParam, toggle } from "@/lib/picks";
 import { GENERAL, type Course } from "@/lib/types";
@@ -17,6 +18,8 @@ type Props = { label: string; base: string; courses: Course[]; counts: Record<st
 /** Folder tabs. Multi: tap several courses, remembered. Single: one tab, a plain link. */
 export default function Tabs(p: Props) {
   const router = useRouter();
+  const [busy, start] = useTransition();
+  const [tapped, setTapped] = useState<string | null>(null);
   const single = p.multi ? null : p.sel;
   // On a phone the row scrolls sideways; bring the one chosen tab (General is last) into view.
   // Not for multi-pick rows, where jumping back to the first pick would fight the next tap.
@@ -31,16 +34,17 @@ export default function Tabs(p: Props) {
       const ids = toggle(p.sel, id, p.courses.length);
       savePicks(ids);
       const codes = codesParam(ids, p.courses);
-      router.push(codes ? `${p.base}?${new URLSearchParams({ course: codes })}` : p.base, { scroll: false });
+      setTapped(id);
+      start(() => router.push(codes ? `${p.base}?${new URLSearchParams({ course: codes })}` : p.base, { scroll: false }));
     };
     return (
       <div className={s.tabs} role="group" aria-label={p.label} data-tabs>
         <button type="button" className={`${s.all} ${s.ink}`} aria-pressed={!p.sel.length} onClick={() => pick("all")}>
-          <span className="sw" aria-hidden="true" />All <small>{p.counts.all}</small>
+          <span className="sw" aria-hidden="true" />All <small>{p.counts.all}</small><Busy on={busy && tapped === "all"} />
         </button>
         {p.courses.map((c) => (
           <button key={c.id} type="button" title={c.name} aria-pressed={p.sel.includes(c.id)} style={sw(c.color)} onClick={() => pick(c.id)}>
-            <span className="sw" style={sw(c.color)} aria-hidden="true" />{c.code} <small>{p.counts[c.id] ?? 0}</small>
+            <span className="sw" style={sw(c.color)} aria-hidden="true" />{c.code} <small>{p.counts[c.id] ?? 0}</small><Busy on={busy && tapped === c.id} />
           </button>
         ))}
       </div>
@@ -50,11 +54,11 @@ export default function Tabs(p: Props) {
     <nav className={s.tabs} aria-label={p.label} data-tabs>
       {p.courses.map((c) => (
         <Link key={c.id} href={`${p.base}?course=${c.code}`} title={c.name} style={sw(c.color)} aria-current={p.sel === c.code ? "page" : undefined}>
-          <span className="sw" style={sw(c.color)} aria-hidden="true" />{c.code} <small>{p.counts[c.id] ?? 0}</small>
+          <span className="sw" style={sw(c.color)} aria-hidden="true" />{c.code} <small>{p.counts[c.id] ?? 0}</small><LinkPending />
         </Link>
       ))}
       <Link href={`${p.base}?course=general`} style={sw(GENERAL)} aria-current={p.sel === "general" ? "page" : undefined}>
-        <span className="sw" style={sw(GENERAL)} aria-hidden="true" />General <small>{p.counts.general ?? 0}</small>
+        <span className="sw" style={sw(GENERAL)} aria-hidden="true" />General <small>{p.counts.general ?? 0}</small><LinkPending />
       </Link>
     </nav>
   );

@@ -8,6 +8,9 @@ import Tabs, { TabPanel } from "@/components/Tabs";
 import { noticeRows } from "@/components/notices/NoticeCard";
 import NoticeList from "@/components/notices/NoticeList";
 import ViewSwitch from "@/components/notices/ViewSwitch";
+import NoticeRows from "@/components/notices/NoticeRows";
+import CourseChips from "@/components/CourseChips";
+import InstallStrip from "@/components/InstallStrip";
 
 export const revalidate = 60;
 
@@ -39,7 +42,14 @@ export default async function Notices({ searchParams }: { searchParams: Promise<
   return (
     <main>
       <PicksSync course={course ?? null} courses={courses} />
-      <div className="title"><h1>Notices</h1><div className="act"><GroupSwitch /><ViewSwitch /></div></div>
+      <div className="title"><h1>Notices</h1><div className="act"><GroupSwitch /><span className="dt"><ViewSwitch /></span></div></div>
+      <InstallStrip />
+      {/* Phones: one chip row, then the notices as rows */}
+      <div className="ph">
+        <CourseChips multi label="Show notices from these courses" base="/notices" courses={courses} counts={counts} sel={sel} />
+        <div className="swap"><NoticeRows rows={rows} empty={`No notices for ${picked.length ? andList(picked.map((c) => c.code)) : "any course"} yet.`} /></div>
+      </div>
+      <div className="dt swap">
       <Tabs multi label="Show notices from these courses" base="/notices" courses={courses} counts={counts} sel={sel} />
       <TabPanel
         title={picked.length === 0 ? "All courses" : picked.length === 1 ? picked[0].name : andList(picked.map((c) => c.code))}
@@ -50,6 +60,7 @@ export default async function Notices({ searchParams }: { searchParams: Promise<
       >
         {rows.length ? <NoticeList rows={rows} /> : <p className="empty">No notices for {picked.length ? andList(picked.map((c) => c.code)) : "any course"} yet.</p>}
       </TabPanel>
+      </div>
     </main>
   );
 }

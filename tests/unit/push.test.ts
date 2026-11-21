@@ -9,7 +9,7 @@ const BREAKS = [{ starts_on: "2026-12-20", label: "Christmas break" }];
 
 const course = (id: string, code: string): Course => ({ id, slot: 1, name: code, code, color: "#000", instructor: "", course_no: "" });
 const slot = (id: string, over: Partial<Slot> = {}): Slot => ({
-  id, course_id: "cns", weekday: 2, starts_at: "09:00:00", ends_at: "10:30:00", room: null, lab_group: "", ...over,
+  id, course_id: "cns", weekday: 2, starts_at: "09:00:00", ends_at: "10:30:00", room: null, lab_group: "", online: false, ...over,
 });
 const item = (id: string, over: Partial<Item> = {}): Item => ({
   created_at: "", id, course_id: "cns", kind: "quiz_exam", title: id, on_date: "2026-11-17", at_time: null, notes: null,
@@ -35,6 +35,23 @@ describe("buildDigest", () => {
     expect(d?.title).toBe("Tomorrow, Tue 17 Nov");
     expect(lines(d)).toEqual(["7:30 AM · MOR class", "9:00 AM · CNS class (ER 204)", "1:00 PM · CNS Quiz/exam: Quiz 2"]);
     expect(d?.url).toBe("/?week=2026-11-15");
+  });
+
+  it("says online instead of the room for a class online that day", () => {
+    const d = data([slot("s1", { room: "ER 204" })]);
+    d.week.slotChanges = [{ slot_id: "s1", on_date: "2026-11-17", lab_group: null, starts_at: null, ends_at: null, online: true, room: null, agenda: null }];
+    expect(lines(buildDigest(sub(), d, TODAY))).toEqual(["9:00 AM · CNS class (online)"]);
+  });
+
+  it("names a class's agenda and one-day room", () => {
+    const d = data([slot("s1", { room: "ER 204" })]);
+    d.week.slotChanges = [{ slot_id: "s1", on_date: "2026-11-17", lab_group: null, starts_at: null, ends_at: null, online: null, room: "Lab 3", agenda: "Orientation" }];
+    expect(lines(buildDigest(sub(), d, TODAY))).toEqual(["9:00 AM · CNS class: Orientation (Lab 3)"]);
+  });
+
+  it("treats picks of courses that no longer exist (a new semester) as every course", () => {
+    const d = data([slot("s1")]);
+    expect(lines(buildDigest(sub({ courses: ["old-course-id"] }), d, TODAY))).toEqual(["9:00 AM · CNS class"]);
   });
 
   it("leaves out a cancelled class and its No class item", () => {

@@ -37,7 +37,7 @@ test("an unknown course code says so", async ({ page }) => {
 test("a class's details link to its course page", async ({ page }) => {
   await page.goto("/?week=2026-11-15");
   await page.getByRole("region", { name: "Calendar" }).getByRole("button", { name: /Methods of Research/ }).first().click();
-  await page.getByRole("dialog").getByRole("link", { name: "View MOR course page →" }).click();
+  await page.getByRole("dialog").getByRole("link", { name: "View MOR course page and files →" }).click();
   await expect(page).toHaveURL(/\/courses\/MOR$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Methods of Research");
 });
@@ -45,4 +45,32 @@ test("a class's details link to its course page", async ({ page }) => {
 test("a done notice still shows on its course page", async ({ page }) => {
   await page.goto("/courses/PM");
   await expect(page.getByRole("region", { name: "Notices" }).getByRole("article").filter({ hasText: "Group list submitted" })).toContainText("Done");
+});
+
+test.describe("on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("Courses is one list of nine rows", async ({ page }) => {
+    await page.goto("/courses");
+    const rows = page.getByRole("list", { name: "Courses" }).getByRole("link");
+    await expect(page.getByRole("list", { name: "Courses" }).getByRole("link")).toHaveCount(9);
+    const h = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(h).toBeLessThan(844 * 2.5);
+    await expect(rows.first()).toBeVisible();
+  });
+
+  test("no sideways page scroll at 360px on every page", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    for (const path of ["/notices", "/files", "/courses", "/courses/CNS"]) {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), path).toBe(true);
+    }
+  });
+
+  test("a course page shows its notices and files as rows", async ({ page }) => {
+    await page.goto("/courses/CNS");
+    await expect(page.locator(".ph").getByRole("article").first()).toBeVisible();
+    await expect(page.locator(".ph").getByRole("list", { name: "Files" }).getByRole("link", { name: /Packet Tracer download/ })).toBeVisible();
+  });
 });

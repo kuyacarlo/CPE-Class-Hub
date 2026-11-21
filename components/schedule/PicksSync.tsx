@@ -28,7 +28,19 @@ export default function PicksSync({ course, courses }: { course: string | null; 
   const router = useRouter();
   useEffect(() => {
     if (!courses.length) return;
-    if (course !== null) return savePicks(resolvePicks(course, null, courses).ids);
+    if (course !== null) {
+      const ids = resolvePicks(course, null, courses).ids;
+      savePicks(ids);
+      // A link's codes may name courses that no longer exist (renamed, a new semester): keep only the ones that matched,
+      // so the URL, the Filter badge and what is shown agree.
+      const codes = codesParam(ids, courses);
+      if (codes === course) return;
+      const q = new URLSearchParams(window.location.search);
+      if (codes) q.set("course", codes);
+      else q.delete("course");
+      router.replace(`${window.location.pathname}${q.size ? `?${q}` : ""}`, { scroll: false });
+      return;
+    }
     const codes = codesParam(resolvePicks(null, readPicks(), courses).ids, courses);
     if (!codes) return;
     const q = new URLSearchParams(window.location.search);

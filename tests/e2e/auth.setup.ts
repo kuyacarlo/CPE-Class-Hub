@@ -64,7 +64,7 @@ setup("officer and viewer sessions", async () => {
     if (e) throw e;
   }
   // Admin-rest leftovers: files, officers, the E2E break, and a renamed CNS.
-  for (const [table, col, like] of [["files", "title", "E2E %"], ["officers", "email", "e2e-%"], ["term_breaks", "label", "E2E %"]]) {
+  for (const [table, col, like] of [["files", "title", "E2E %"], ["officers", "email", "e2e-%"], ["term_breaks", "label", "E2E %"], ["reports", "message", "E2E %"]]) {
     const { error: e } = await admin.from(table).delete().like(col, like);
     if (e) throw e;
   }

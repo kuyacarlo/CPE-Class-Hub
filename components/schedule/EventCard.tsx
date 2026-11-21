@@ -22,6 +22,12 @@ const hm = (t: string) => {
   return `${Math.floor(m / 60) % 12 || 12}:${String(m % 60).padStart(2, "0")}`;
 };
 
+/** Where a class meets: "Online", or its room. */
+export const where = (slot: Pick<Slot, "online" | "room">) => (slot.online ? "Online" : slot.room);
+
+/** An online class's window dots, like a video call's title bar. Decoration only; the card says "Online". */
+export const Dots = () => <span className={s.dots} aria-hidden="true"><span /><span /><span /></span>;
+
 export const Tag =({ c }: { c?: Course }) => (
   <span className="tag" style={{ "--c": c?.color ?? "#ddd" } as React.CSSProperties} title={c?.name}>{c?.code ?? "—"}</span>
 );
@@ -39,19 +45,21 @@ export default function EventCard({ e, date, course, next, noticed, className, p
   let body: React.ReactNode, open: () => void;
   if (e.t === "slot") {
     open = () => openDetail({ t: "slot", id: e.slot.id, date });
+    const on = e.slot.online, place = where(e.slot);
+    cls.push(on && s.on);
     body = compact ? (
       <>
-        <span className={s.top}><Tag c={course} /><small>{hm(e.slot.starts_at)}–{hm(e.slot.ends_at)}</small></span>
-        <b>{course?.name ?? "Course"}</b>
-        {(e.slot.lab_group || e.slot.room) && (
-          <small>{[e.slot.lab_group, e.slot.room].filter(Boolean).join(" · ")}</small>
-        )}
+        {/* An online class's bar holds only the tag and dots, so it stays one line and the name still shows */}
+        <span className={s.top}><Tag c={course} />{on ? <Dots /> : <small>{hm(e.slot.starts_at)}–{hm(e.slot.ends_at)}</small>}</span>
+        {on && <small>{hm(e.slot.starts_at)}–{hm(e.slot.ends_at)}</small>}
+        <b>{e.slot.agenda ?? course?.name ?? "Course"}</b>
+        {(e.slot.lab_group || place) && <small>{[e.slot.lab_group, place].filter(Boolean).join(" · ")}</small>}
       </>
     ) : (
       <>
-        <b>{course?.name ?? "Course"}</b>
+        <b>{e.slot.agenda ?? course?.name ?? "Course"}</b>
         <small><i>Class{e.slot.lab_group && ` · ${e.slot.lab_group}`}</i>{timeSpan(e.slot)}</small>
-        {e.slot.room && <small>{e.slot.room}</small>}
+        {place && <small>{place}</small>}
       </>
     );
   } else if (compact) {
@@ -87,7 +95,7 @@ export default function EventCard({ e, date, course, next, noticed, className, p
   }
   return (
     <button type="button" className={cls.filter(Boolean).join(" ")} style={{ "--c": course?.color ?? "#ddd", ...place } as React.CSSProperties} onClick={open}>
-      {!compact && <Tag c={course} />}
+      {!compact && (e.t === "slot" && e.slot.online ? <span className={s.top}><Tag c={course} /><Dots /></span> : <Tag c={course} />)}
       {body}
     </button>
   );

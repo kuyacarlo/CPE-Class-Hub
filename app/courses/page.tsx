@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Tag } from "@/components/schedule/EventCard";
+import InstallStrip from "@/components/InstallStrip";
 import { loadCourses, loadSlots, loadUpcoming, LoadError } from "@/lib/data";
 import { formatShort, manilaNowMinutes, manilaToday } from "@/lib/time";
 import { KIND } from "@/lib/types";
@@ -30,7 +31,24 @@ export default async function Courses() {
         <h1>Courses</h1>
         <p className="sub">{courses.length} courses this semester. Open one for its classes, what&apos;s coming up, notices and files.</p>
       </div>
-      <div className={s.grid}>
+      <InstallStrip />
+      {/* Phones: one list, a row per course */}
+      <ul className={`ph box rows ${s.rows}`} aria-label="Courses">
+        {courses.map((c) => {
+          const weekly = slots.filter((x) => x.course_id === c.id).length;
+          const next = nextUp(upcoming, today, now, [c.id], 1)[0];
+          return (
+            <li key={c.id}>
+              <Link href={`/courses/${c.code}`} className={s.row} style={{ "--c": c.color } as React.CSSProperties}>
+                <span className={s.l1}><Tag c={c} /><b>{c.name}</b></span>
+                <small>{[c.instructor, plural(weekly, "class a week", "classes a week")].filter(Boolean).join(" · ")}</small>
+                {next && <span className={s.nx}><span>{KIND[next.kind]}</span>{next.title} · {formatShort(next.on_date)}</span>}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <div className={`dt ${s.grid}`}>
         {courses.map((c) => {
           const weekly = slots.filter((x) => x.course_id === c.id).length;
           const next = nextUp(upcoming, today, now, [c.id], 1)[0];

@@ -1,5 +1,5 @@
 "use client";
-import EventCard, { timeSpan } from "@/components/schedule/EventCard";
+import EventCard, { timeSpan, where } from "@/components/schedule/EventCard";
 import { useGroup } from "@/components/schedule/GroupSwitch";
 import { formatShort, WEEKDAYS } from "@/lib/time";
 import type { Course, Item, Slot } from "@/lib/types";
@@ -28,7 +28,7 @@ export default function CourseWeek({ course, slots, items, today }: { course: Co
                 <li key={x.id}>
                   <span className={s.day}>{WEEKDAYS[x.weekday - 1]}</span>
                   <span>{timeSpan(x)}</span>
-                  {x.room && <span className={s.muted}>{x.room}</span>}
+                  {where(x) && <span className={s.muted}>{where(x)}</span>}
                   {x.lab_group && <span className={s.grp}>{x.lab_group}</span>}
                 </li>
               ))}

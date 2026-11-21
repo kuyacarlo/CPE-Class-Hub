@@ -1,5 +1,8 @@
 import { loadCourses, loadFiles, LoadError } from "@/lib/data";
 import FileTable from "@/components/files/FileTable";
+import FileRows from "@/components/files/FileRows";
+import CourseChips from "@/components/CourseChips";
+import InstallStrip from "@/components/InstallStrip";
 import Tabs, { TabPanel } from "@/components/Tabs";
 import { GENERAL } from "@/lib/types";
 
@@ -19,17 +22,26 @@ export default async function Files({ searchParams }: { searchParams: Promise<{ 
   const { courses, files } = data;
   const picked = courses.find((c) => c.code.toLowerCase() === course?.toLowerCase());
   const shown = files.filter((f) => (picked ? f.course_id === picked.id : f.course_id === null));
-  const counts: Record<string, number> = { general: files.filter((f) => f.course_id === null).length };
+  const counts: Record<string, number> = { all: files.length, general: files.filter((f) => f.course_id === null).length };
   for (const f of files) if (f.course_id) counts[f.course_id] = (counts[f.course_id] ?? 0) + 1;
   const noun = `${shown.length} ${shown.length === 1 ? "file or link" : "files and links"}`;
 
   return (
     <main>
       <div className="title"><h1>Files</h1></div>
+      <InstallStrip />
+      {/* Phones: no course picked means All (desktop opens on General); one chip row, then rows */}
+      <div className="ph">
+        <CourseChips label="Files by course" base="/files" courses={courses} counts={counts} sel={picked?.code ?? (course?.toLowerCase() === "general" ? "general" : null)} />
+        <div className="swap">{course ? (shown.length ? <FileRows files={shown} courses={courses} grouped={false} /> : <p className="box empty">No files for {picked?.name ?? "General"} yet.</p>)
+          : files.length ? <FileRows files={files} courses={courses} grouped /> : <p className="box empty">No files yet.</p>}</div>
+      </div>
+      <div className="dt swap">
       <Tabs label="Files by course" base="/files" courses={courses} counts={counts} sel={picked?.code ?? "general"} />
       <TabPanel title={picked?.name ?? "General"} count={noun} color={picked?.color ?? GENERAL}>
         {shown.length ? <FileTable files={shown} courses={courses} /> : <p className="empty">No files for {picked?.name ?? "General"} yet.</p>}
       </TabPanel>
+      </div>
     </main>
   );
 }

@@ -18,17 +18,19 @@ const MAX_LINES = 6;
 export function buildDigest(sub: Pick<PushSub, "courses" | "lab_group">, d: DigestData, today: string): Digest | null {
   const tomorrow = addDays(today, 1);
   const code = (id: string) => d.courses.find((c) => c.id === id)?.code ?? "";
+  // Picks of courses that no longer exist (a phone that saved them last semester) count as every course.
+  const picks = sub.courses.filter((id) => d.courses.some((c) => c.id === id));
   const notices = d.week.notices.filter(
-    (n) => !n.done && (!sub.courses.length || sub.courses.includes(n.course_id)) && !otherGroup(n.lab_group, sub.lab_group),
+    (n) => !n.done && (!picks.length || picks.includes(n.course_id)) && !otherGroup(n.lab_group, sub.lab_group),
   );
-  const entries = dayEntries(tomorrow, d.week, sub.courses, sub.lab_group).filter((e) => e.t === "slot" || e.item.kind !== "no_class");
+  const entries = dayEntries(tomorrow, d.week, picks, sub.lab_group).filter((e) => e.t === "slot" || e.item.kind !== "no_class");
   const noted = new Set(["quiz_exam", "due"]);
 
   const lines = entries.map((e) => {
     if (e.t === "slot") {
       const s = e.slot;
-      const where = [s.lab_group, s.room].filter(Boolean).join(", ");
-      return `${formatTime(fromPgTime(s.starts_at))} · ${code(s.course_id)} class${where ? ` (${where})` : ""}`;
+      const where = [s.lab_group, s.online ? "online" : s.room].filter(Boolean).join(", ");
+      return `${formatTime(fromPgTime(s.starts_at))} · ${code(s.course_id)} class${s.agenda ? `: ${s.agenda}` : ""}${where ? ` (${where})` : ""}`;
     }
     const x = e.item;
     const time = x.at_time ? formatTime(fromPgTime(x.at_time)) : x.class_slot_id ? formatTime(e.m) : "";

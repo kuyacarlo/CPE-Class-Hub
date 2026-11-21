@@ -29,7 +29,7 @@ export default async function AdminClasses({ searchParams }: { searchParams: Pro
                   key={x.id}
                   course={course}
                   title={`${t(x.starts_at)} to ${t(x.ends_at)}`}
-                  details={[course?.name, x.lab_group, x.room].filter(Boolean).join(" · ")}
+                  details={[course?.name, x.lab_group, x.online ? "Online" : x.room].filter(Boolean).join(" · ")}
                   editing={x.id === editing?.id}
                   actions={<>
                     <Link className="btn s" href={`/admin/classes?edit=${x.id}`}>Edit</Link>

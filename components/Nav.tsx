@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { LinkPending } from "./Pending";
 import { usePathname } from "next/navigation";
 import s from "./Header.module.css";
 
@@ -12,6 +13,7 @@ export default function Nav() {
       {LINKS.map(([href, label]) => (
         <Link key={href} href={href} aria-current={(href === "/" ? path === "/" : path.startsWith(href)) ? "page" : undefined}>
           {label}
+          <LinkPending />
         </Link>
       ))}
     </nav>

@@ -17,3 +17,13 @@
 .top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .top small{margin-top:0;font-weight:700;color:inherit}
 .test .top small{color:#fff}
+/* Online class: a window, its top line the title bar in the course colour */
+/* --pt/--px: the card's padding, which the grid's blocks make smaller; the bar reaches the card's edges */
+.on{border-left-width:2px;overflow:hidden;container-type:inline-size;--pt:7px;--px:9px}
+.on .top{margin:calc(-1 * var(--pt)) calc(-1 * var(--px)) 3px;padding:calc(var(--pt) / 2) var(--px);background:var(--c);border-bottom:2px solid var(--ink)}
+.on .top :global(.tag){background:#fff;margin-bottom:0}
+.on .top+small{margin-top:0;font-weight:700;color:var(--ink);white-space:nowrap}
+.dots{display:inline-flex;gap:3px;margin-left:auto}
+/* Too narrow for the dots beside the tag: the bar alone says "window" */
+@container (max-width:80px){.dots{display:none}}
+.dots span{width:7px;height:7px;border-radius:50%;background:#fff;border:1.5px solid var(--ink)}

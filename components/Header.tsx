@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
+import HeaderTools from "./schedule/HeaderTools";
 import { getOfficer } from "@/lib/auth";
 import Nav from "./Nav";
 import s from "./Header.module.css";
@@ -15,14 +17,16 @@ export default async function Header() {
       </Link>
       <Nav />
       <div className={s.end}>
+        <Suspense fallback={null}><HeaderTools /></Suspense>
         {officer && (
-          <>
+          // Phones show these in the footer instead.
+          <div className={`dt ${s.officer}`}>
             <span className={s.who}>{officer.name}</span>
             <Link className="btn s" href="/admin">Admin</Link>
             <form action="/auth/signout" method="post">
               <button className="btn s">Sign out</button>
             </form>
-          </>
+          </div>
         )}
       </div>
     </header>

@@ -2,13 +2,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { cancelSlotOn, restoreSlotOn, setSlotGroupOn, setSlotHoursOn } from "@/app/admin/actions/slots";
+import { cancelSlotOn, restoreSlotOn, setSlotGroupOn, setSlotHoursOn, setSlotOnlineOn, setSlotRoomAgendaOn } from "@/app/admin/actions/slots";
 import { toast } from "@/components/Toast";
 import type { ActionResult } from "@/lib/auth";
 import { formatLong, formatShort, manilaToday } from "@/lib/time";
-import type { Course, FileRow, Item, Notice } from "@/lib/types";
+import type { Course, Item, Notice } from "@/lib/types";
 import { isPastNotice, slotOn, type WeekData } from "@/lib/week";
-import { KIND, pgTime, Tag, timeSpan } from "./EventCard";
+import { KIND, pgTime, Tag, timeSpan, where } from "./EventCard";
+import ReportForm from "./ReportForm";
 import s from "./DetailsDialog.module.css";
 
 export type DetailKey = { t: "slot"; id: string; date: string } | { t: "item"; id: string };
@@ -17,12 +18,12 @@ const EVENT = "classhub:detail";
 /** Open the details panel for a calendar entry. Needs <DetailsDialog /> on the page. */
 export const openDetail = (key: DetailKey) => window.dispatchEvent(new CustomEvent(EVENT, { detail: key }));
 
-type Props = { week: WeekData | null; upcoming: Item[]; upNotices: Notice[]; courses: Course[]; files: FileRow[] | null; isOfficer: boolean };
+type Props = { week: WeekData | null; upcoming: Item[]; upNotices: Notice[]; courses: Course[]; isOfficer: boolean };
 
 const GROUPS = [["", "Both"], ["G1", "G1"], ["G2", "G2"]] as const;
 const at = (date: string, time: string | null) => `${formatLong(date)}${time ? `, ${pgTime(time)}` : ""}`;
 
-export default function DetailsDialog({ week, upcoming, upNotices, courses, files, isOfficer }: Props) {
+export default function DetailsDialog({ week, upcoming, upNotices, courses, isOfficer }: Props) {
   const router = useRouter();
   const ref = useRef<HTMLDialogElement>(null);
   const [key, setKey] = useState<DetailKey | null>(null);
@@ -72,10 +73,12 @@ export default function DetailsDialog({ week, upcoming, upNotices, courses, file
       title = courses.find((c) => c.id === slot.course_id)?.name ?? "Course";
       rows = [
         ["When", `${formatLong(key.date)}, ${timeSpan(slot)}` + (moved ? ` (this week only; usually ${timeSpan(usual)})` : "")],
-        ["Where", slot.room || "—"],
+        ["Where", (where(slot) || "—") + (where(slot) !== where(usual) || slot.online !== usual.online
+          ? ` (this week only; usually ${usual.online ? "online" : `in person${usual.room ? `, ${usual.room}` : ""}`})` : "")],
         ["Group", (slot.lab_group || "Whole class") + (slot.lab_group !== usual.lab_group ? ` (this week only; usually ${usual.lab_group || "whole class"})` : "")],
         ["Repeats", `Every ${formatLong(key.date).split(" ")[0]}`],
       ];
+      if (slot.agenda) rows.unshift(["Agenda", slot.agenda]);
       foot = (
         <>
           <span>Group on {day}</span>
@@ -85,6 +88,24 @@ export default function DetailsDialog({ week, upcoming, upNotices, courses, file
                 onClick={() => slot.lab_group !== v && run(() => setSlotGroupOn(slot.id, key.date, v), `${label === "Both" ? "Whole class" : label} on ${day}`)}>{label}</button>
             ))}
           </div>
+          <span>Class on {day}</span>
+          <div className="seg" role="group" aria-label={`Class on ${day}`}>
+            {([[false, "In person"], [true, "Online"]] as const).map(([v, label]) => (
+              <button key={label} type="button" aria-pressed={slot.online === v} disabled={busy}
+                onClick={() => slot.online !== v && run(() => setSlotOnlineOn(slot.id, key.date, v), `${label} on ${day}`)}>{label}</button>
+            ))}
+          </div>
+          <form key={`ra${slot.id}${key.date}${slot.room}${slot.agenda}`} className={s.hours} aria-label={`Room and agenda on ${day}`}
+            onSubmit={(ev) => {
+              ev.preventDefault();
+              const f = new FormData(ev.currentTarget);
+              run(() => setSlotRoomAgendaOn(slot.id, key.date, String(f.get("room")), String(f.get("agenda"))), `Room and agenda saved for ${day}`);
+            }}>
+            <label>Room<input name="room" defaultValue={slot.room ?? ""} maxLength={40} placeholder={usual.room ?? "ER 204"} /></label>
+            <label>Agenda<input name="agenda" defaultValue={slot.agenda ?? ""} maxLength={40} placeholder="Orientation" /></label>
+            <button className="btn s" disabled={busy}>Save for {day}</button>
+            <small>Blank room: the usual one. Blank agenda: none. A quiz also needs a Quiz/exam item so it counts down.</small>
+          </form>
           <form key={`${slot.id}${key.date}${slot.starts_at}${slot.ends_at}`} className={s.hours} aria-label={`Hours on ${day}`}
             onSubmit={(ev) => {
               ev.preventDefault();
@@ -126,7 +147,6 @@ export default function DetailsDialog({ week, upcoming, upNotices, courses, file
   const c = courses.find((x) => x.id === course);
   if (c?.course_no) rows.push(["Course no.", c.course_no]);
   if (c?.instructor) rows.push(["Instructor", c.instructor]);
-  const own = files?.filter((f) => f.course_id === course) ?? [];
   const notePast = note && isPastNotice(note, items, today);
 
   return (
@@ -152,22 +172,9 @@ export default function DetailsDialog({ week, upcoming, upNotices, courses, file
                 <p className={s.meta}>{formatShort(note.posted_on)}{notePast ? ` · ${note.done ? "Done" : "Passed"}` : ""}</p>
               </div>
             )}
+            {key && <ReportForm key={key.t === "slot" ? key.id + key.date : key.id} about={key.t === "slot" ? { slot_id: key.id, date: key.date } : { item_id: key.id }} />}
             {isOfficer && foot && <div className={s.foot}><p>Officers only</p>{foot}</div>}
-            <div>
-              <h3>Files for {c?.code}</h3>
-              {files === null ? (
-                <p className={s.meta}>Couldn&apos;t load the files. <a href="">Try again.</a></p>
-              ) : own.length ? (
-                <ul>
-                  {own.map((f) => (
-                    <li key={f.id}>
-                      {f.url ? <a href={f.url} target="_blank" rel="noopener noreferrer">{f.title} ↗</a> : <b>{f.title}</b>} <span>· {f.file_type}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : <p className={s.meta}>No files for this course yet.</p>}
-            </div>
-            {c && <p><Link className={s.course} href={`/courses/${c.code}`} onClick={() => ref.current?.close()}>View {c.code} course page →</Link></p>}
+            {c && <p><Link className={s.course} href={`/courses/${c.code}`} onClick={() => ref.current?.close()}>View {c.code} course page and files →</Link></p>}
           </div>
         </>
       )}

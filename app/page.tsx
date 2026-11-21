@@ -1,17 +1,22 @@
 import { getOfficer } from "@/lib/auth";
-import { loadCourses, loadFiles, loadNoticesForItems, loadUpcoming, loadWeek, LoadError } from "@/lib/data";
+import { loadCourses, loadNoticesForItems, loadUpcoming, loadWeek, LoadError } from "@/lib/data";
 import { resolvePicks } from "@/lib/picks";
 import { addDays, formatLong, formatShort, formatUS, manilaNowMinutes, manilaToday, sundayOf } from "@/lib/time";
 import type { Course } from "@/lib/types";
-import { nextUp, termWeek } from "@/lib/week";
+import { nextUp, sortNotices, termWeek } from "@/lib/week";
 import OfflineNote from "@/components/OfflineNote";
 import Calendar from "@/components/schedule/Calendar";
 import CourseFilter from "@/components/schedule/CourseFilter";
 import DetailsDialog from "@/components/schedule/DetailsDialog";
+import DaySummary from "@/components/schedule/DaySummary";
 import DownloadPng from "@/components/schedule/DownloadPng";
+import { noticeRows } from "@/components/notices/NoticeCard";
+import FilterSheet from "@/components/schedule/FilterSheet";
+import InstallStrip from "@/components/InstallStrip";
 import GroupSwitch from "@/components/schedule/GroupSwitch";
 import NextUp from "@/components/schedule/NextUp";
 import PicksSync from "@/components/schedule/PicksSync";
+import WeekDir from "@/components/schedule/WeekDir";
 import PostedThisWeek from "@/components/schedule/PostedThisWeek";
 import WeekNav from "@/components/schedule/WeekNav";
 import s from "./page.module.css";
@@ -35,8 +40,8 @@ export default async function Schedule({ searchParams }: { searchParams: Promise
   const today = manilaToday();
   const weekStart = sundayOf(isDate(weekParam) ? weekParam : today);
   const weekEnd = addDays(weekStart, 6);
-  const [courses, week, upcoming, files, officer] = await Promise.all([
-    orNull(loadCourses()), orNull(loadWeek(weekStart)), orNull(loadUpcoming(today)), orNull(loadFiles()), getOfficer(),
+  const [courses, week, upcoming, officer] = await Promise.all([
+    orNull(loadCourses()), orNull(loadWeek(weekStart)), orNull(loadUpcoming(today)), getOfficer(),
   ]);
   const list: Course[] = courses ?? [];
   const sel = resolvePicks(course ?? null, null, list).ids;
@@ -52,12 +57,17 @@ export default async function Schedule({ searchParams }: { searchParams: Promise
   const up = upcoming ? nextUp(upcoming, today, manilaNowMinutes(), sel, upcoming.length) : null;
   const upNotices = (up && (await orNull(loadNoticesForItems(up.map((i) => i.id))))) || [];
   const calProps = week && { week, courses: list, sel, today, weekStart, upcoming: up ?? [] };
+  const posted = week ? week.notices.filter((n) => n.posted_on >= weekStart && n.posted_on <= weekEnd && (!sel.length || sel.includes(n.course_id))) : [];
+  const weekItems = week ? [...week.items, ...week.linkedItems] : [];
 
   return (
     <main>
       <OfflineNote />
       <PicksSync course={course ?? null} courses={list} />
-      <div className="title">
+      <WeekDir weekStart={weekStart} />
+      <DaySummary week={week} courses={list} sel={sel} today={today} weekStart={weekStart} thisWeek={sundayOf(today)}
+        tw={tw} upcoming={up} notices={noticeRows(sortNotices(posted, weekItems, today), list, weekItems, today)} course={course} codes={codes} weekParam={weekParam} retry={here} />
+      <div className="title dt">
         <h1>{heading}</h1>
         <p className="sub">{sub}</p>
         <div className="act">
@@ -66,20 +76,16 @@ export default async function Schedule({ searchParams }: { searchParams: Promise
           {calProps && <DownloadPng {...calProps} title={`${heading} · ${sub}`} name={typeof tw === "number" ? String(tw) : weekStart} />}
         </div>
       </div>
-      {up ? <NextUp items={up} courses={list} today={today} /> : <Failed what="calendar" href={here} />}
-      <div className={s.wk}>
-        {courses ? <CourseFilter courses={list} sel={sel} week={week} weekStart={weekStart} weekParam={weekParam} /> : <Failed what="courses" href={here} />}
-        {calProps ? <Calendar {...calProps} /> : <Failed what="calendar" href={here} />}
+      <div className="dt">{up ? <NextUp items={up} courses={list} today={today} /> : <Failed what="calendar" href={here} />}</div>
+      <div className={`swap ${s.wk}`}>
+        {courses ? <div className="dt"><CourseFilter courses={list} sel={sel} week={week} weekStart={weekStart} weekParam={weekParam} /></div> : <Failed what="courses" href={here} />}
+        <div className="v-week swap"><div key={weekStart} className="wk-in">{calProps ? <Calendar {...calProps} /> : <Failed what="calendar" href={here} />}</div></div>
       </div>
-      {week && (
-        <PostedThisWeek
-          notices={week.notices.filter((n) => n.posted_on >= weekStart && n.posted_on <= weekEnd && (!sel.length || sel.includes(n.course_id)))}
-          items={[...week.items, ...week.linkedItems]}
-          courses={list}
-          today={today}
-        />
-      )}
-      <DetailsDialog week={week} upcoming={upcoming ?? []} upNotices={upNotices} courses={list} files={files} isOfficer={!!officer} />
+      {week && <div className="dt"><PostedThisWeek notices={posted} items={weekItems} courses={list} today={today} /></div>}
+      {/* At the end on Schedule, so it never pushes the day off the first screen */}
+      <InstallStrip />
+      <FilterSheet courses={list} sel={sel} weekParam={weekParam} cal={calProps || null} title={`${heading} · ${sub}`} name={typeof tw === "number" ? String(tw) : weekStart} />
+      <DetailsDialog week={week} upcoming={upcoming ?? []} upNotices={upNotices} courses={list} isOfficer={!!officer} />
     </main>
   );
 }

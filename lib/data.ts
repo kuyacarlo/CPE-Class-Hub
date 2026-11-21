@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { SORT_COOKIE, type AdminSort } from "./sort";
 import { serverClient } from "./supabase/server";
 import { addDays } from "./time";
-import type { Course, FileRow, Item, Notice, Slot, SlotChange, Term, TermBreak } from "./types";
+import type { Course, FileRow, Item, Notice, Report, Slot, SlotChange, Term, TermBreak } from "./types";
 import type { WeekData } from "./week";
 
 /** One block failed to load; the page shows "Couldn't load the {what}. Try again." for that block only. */
@@ -37,7 +37,7 @@ export async function loadWeek(weekStart: string): Promise<WeekData> {
     run<Item[]>("calendar", db.from("calendar_items").select("*").gte("on_date", weekStart).lte("on_date", weekEnd)),
     run<Term>("calendar", db.from("term").select("starts_on, week_count").single()),
     run<TermBreak[]>("calendar", db.from("term_breaks").select("starts_on, label").order("starts_on")),
-    run<SlotChange[]>("calendar", db.from("slot_groups").select("slot_id, on_date, lab_group, starts_at, ends_at").gte("on_date", weekStart).lte("on_date", weekEnd)),
+    run<SlotChange[]>("calendar", db.from("slot_groups").select("slot_id, on_date, lab_group, starts_at, ends_at, online, room, agenda").gte("on_date", weekStart).lte("on_date", weekEnd)),
   ]);
   const ids = items.map((i) => i.id);
   const inWeek = `and(posted_on.gte.${weekStart},posted_on.lte.${weekEnd})`;
@@ -118,4 +118,10 @@ export async function loadTerm(): Promise<{ term: Term; breaks: TermBreak[] }> {
     run<TermBreak[]>("semester", db.from("term_breaks").select("starts_on, label").order("starts_on")),
   ]);
   return { term, breaks };
+}
+
+/** Classmates' reports, for officers (others read none): open ones first, newest first. */
+export async function loadReports(): Promise<Report[]> {
+  const db = await serverClient();
+  return run("reports", db.from("reports").select("*").order("done").order("created_at", { ascending: false }));
 }

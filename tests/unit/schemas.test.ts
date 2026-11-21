@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  breakSchema, courseSchema, coursesSchema, fileSchema, itemSchema, noticeSchema, officerSchema, slotSchema, termSchema,
+  breakSchema, courseSchema, coursesSchema, fileSchema, itemSchema, noticeSchema, officerSchema, reportSchema, slotSchema, termSchema,
 } from "@/lib/schemas";
 
 const msgs = (r: { error?: { issues: { message: string }[] } }) => r.error?.issues.map((i) => i.message) ?? [];
@@ -10,8 +10,11 @@ const slot = { course_id: "c1", weekday: "2", starts_at: "7:30 AM", ends_at: "9:
 describe("slotSchema", () => {
   it("converts times to HH:MM:SS", () => {
     expect(slotSchema.parse(slot)).toEqual({
-      course_id: "c1", weekday: 2, starts_at: "07:30:00", ends_at: "09:00:00", room: null, lab_group: "G1",
+      course_id: "c1", weekday: 2, starts_at: "07:30:00", ends_at: "09:00:00", room: null, lab_group: "G1", online: false,
     });
+  });
+  it("reads the Online every week box", () => {
+    expect(slotSchema.parse({ ...slot, online: "on" }).online).toBe(true);
   });
   it("rejects an end before the start", () => {
     const r = slotSchema.safeParse({ ...slot, starts_at: "9:00 AM", ends_at: "7:30 AM" });
@@ -95,5 +98,20 @@ describe("coursesSchema", () => {
     const r = coursesSchema.safeParse({ id0: "a", name0: "Math", code0: "TOOLONGCODE" });
     expect(r.success).toBe(false);
     expect(r.error?.issues[0].path).toEqual(["code0"]);
+  });
+});
+
+describe("reportSchema", () => {
+  const id = "5e4bb5d3-ceed-437c-aee6-1d8f810b28ec";
+  it("takes one class on one day, or one item, with a message", () => {
+    expect(reportSchema.safeParse({ slot_id: id, date: "2026-11-17", message: "Room is ER 204" }).success).toBe(true);
+    expect(reportSchema.safeParse({ item_id: id, message: "Due Friday, not Thursday" }).success).toBe(true);
+  });
+  it("refuses a report about nothing, about both, or with too short or long a message", () => {
+    expect(reportSchema.safeParse({ message: "Room is ER 204" }).success).toBe(false);
+    expect(reportSchema.safeParse({ slot_id: id, date: "2026-11-17", item_id: id, message: "Room is ER 204" }).success).toBe(false);
+    expect(reportSchema.safeParse({ slot_id: id, message: "Room is ER 204" }).success).toBe(false); // no date
+    expect(reportSchema.safeParse({ item_id: id, message: "ok" }).success).toBe(false);
+    expect(reportSchema.safeParse({ item_id: id, message: "x".repeat(501) }).success).toBe(false);
   });
 });
