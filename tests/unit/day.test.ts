@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Item, Slot } from "@/lib/types";
 import type { WeekData } from "@/lib/week";
-import { capDots, courseCounts, daySummary, hourRange, stripDots, swipeDir } from "@/lib/day";
+import { attachItems, capDots, courseCounts, daySummary, hourRange, stripDots, swipeDir } from "@/lib/day";
 
 const term = { starts_on: "2026-11-15", week_count: 18 };
 const breaks = [{ starts_on: "2026-12-20", label: "Christmas break" }];
@@ -104,5 +104,18 @@ describe("capDots", () => {
     expect(capDots(["a", "b", "c", "d", "e"])).toEqual({ shown: ["a", "b", "c"], more: 2 });
     expect(capDots(["a", "b", "c", "d", "e", "f", "g"])).toEqual({ shown: ["a", "b", "c"], more: 4 });
     expect(capDots([])).toEqual({ shown: [], more: 0 });
+  });
+});
+
+describe("attachItems", () => {
+  it("puts a course's untimed items under its first class that day; other items stay apart", () => {
+    const d = data(
+      [slot("a1", "a", 2, "08:00:00", "09:00:00"), slot("b", "b", 2, "10:00:00", "11:00:00"), slot("a2", "a", 2, "13:00:00", "14:00:00")],
+      [item("due-a", "a", "due", "2026-11-17"), item("due-c", "c", "due", "2026-11-17")],
+    );
+    const sum = daySummary("2026-11-17", d, [], "");
+    const { groups, loose } = attachItems(sum.classes, sum.extras.filter((i) => i.kind !== "no_class" && !i.at_time));
+    expect(groups.map((g) => [g.b.e.t === "slot" && g.b.e.slot.id, g.items.map((i) => i.id)])).toEqual([["a1", ["due-a"]], ["b", []], ["a2", []]]);
+    expect(loose.map((i) => i.id)).toEqual(["due-c"]);
   });
 });

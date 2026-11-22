@@ -47,3 +47,14 @@ export const swipeDir = (dx: number, dy: number): -1 | 0 | 1 => (Math.abs(dx) > 
 /** A day's strip dots fit four to a cell; past four, three dots and a "+N" for the rest keep the cell from growing. */
 export const capDots = <T,>(dots: T[]): { shown: T[]; more: number } =>
   dots.length <= 4 ? { shown: dots, more: 0 } : { shown: dots.slice(0, 3), more: dots.length - 3 };
+
+/** Day view: each untimed item (a due date, say) goes under its course's first class that day, so a course reads as
+ * one group; items whose course has no class that day stay apart (`loose`). */
+export function attachItems(classes: Block[], items: Item[]): { groups: { b: Block; items: Item[] }[]; loose: Item[] } {
+  const first = new Map<string, Block>();
+  for (const b of classes) if (!first.has(b.e.course)) first.set(b.e.course, b);
+  return {
+    groups: classes.map((b) => ({ b, items: first.get(b.e.course) === b ? items.filter((i) => i.course_id === b.e.course) : [] })),
+    loose: items.filter((i) => !first.has(i.course_id)),
+  };
+}

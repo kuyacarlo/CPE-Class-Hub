@@ -1,14 +1,14 @@
 /* Courses index: one card per course, its colour as the header band. */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--gap)}
 .card{display:flex;flex-direction:column;overflow:hidden;text-decoration:none;color:var(--ink)}
-.card:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+.card:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--shc)}
 .ch{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--c);border-bottom:var(--bw) solid var(--ink);font-weight:700}
-.ch :global(.tag){background:#fff}
+.ch :global(.tag){background:var(--card)}
 .cb{padding:16px;display:flex;flex-direction:column;gap:4px;flex:1}
 .cb h2{font:800 22px/1.15 var(--head);letter-spacing:-.01em}
 .cb p{color:var(--muted)}
 .next{margin-top:auto;padding-top:10px;font-weight:700;color:var(--ink)}
-.next span{display:inline-block;background:var(--ink);color:#fff;border-radius:999px;padding:0 8px;margin-right:6px;font-size:13px}
+.next span{display:inline-block;background:var(--ink);color:var(--paper);border-radius:999px;padding:0 8px;margin-right:6px;font-size:13px}
 
 /* Phones: the courses as rows */
 .rows{list-style:none;margin:0;padding:0}
@@ -17,13 +17,13 @@
 .l1 b{font-weight:700}
 .row small{color:var(--muted);font-size:13px}
 .nx{font-size:13px;font-weight:700}
-.nx span{background:var(--ink);color:#fff;border-radius:4px;padding:0 5px;margin-right:4px}
+.nx span{background:var(--ink);color:var(--paper);border-radius:4px;padding:0 5px;margin-right:4px}
 
 /* One course */
 .back{margin-bottom:10px;font-weight:700}
 .back a{text-underline-offset:3px}
 .hero{background:var(--c);padding:20px 24px;margin-bottom:var(--gap);display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px}
-.hero :global(.tag){background:#fff;height:26px;font-size:14px}
+.hero :global(.tag){background:var(--card);height:26px;font-size:14px}
 .hero h1{font:800 44px/1.05 var(--head);letter-spacing:-.03em;margin-top:8px}
 .hero p{font-weight:600;margin-top:6px}
 .hero .act{margin-left:auto}
@@ -33,7 +33,7 @@
 .sec h2{font:800 26px/1 var(--head);letter-spacing:-.02em}
 .sec a{margin-left:auto;font-weight:700;text-underline-offset:3px}
 .list{list-style:none;margin:0;padding:0}
-.list li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:12px 16px;border-top:1.5px solid #cfcfca}
+.list li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:12px 16px;border-top:1.5px solid var(--div)}
 .list li:first-child{border-top:0}
 .day{font-weight:800;min-width:96px}
 .muted{color:var(--muted)}
@@ -48,3 +48,5 @@
 .files{overflow-x:auto}
 }
 .row:active{background:var(--soft)}
+/* Course colour: dark text and lines, day or night */
+.ch,.hero{--ink:#111;--card:#fff;--paper:#fff;--shc:#111;color:#111}

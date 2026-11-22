@@ -16,9 +16,14 @@ export const metadata: Metadata = {
   description: "CPE 3C’s schedule, notices, files and courses in one place.",
   appleWebApp: { capable: true, title: "Class Hub" }, // opens full screen from the iPhone home screen
 };
-const VIEW_SCRIPT = `try{document.documentElement.dataset.view=localStorage.getItem("classhub.calendarView")==="week"?"week":"day"}catch(e){}`;
+// Before paint: the phones' Schedule view, and a theme the visitor picked (none = follow the device), so nothing flashes.
+const VIEW_SCRIPT = `try{var d=document.documentElement,t=localStorage.getItem("classhub.theme");d.dataset.view=localStorage.getItem("classhub.calendarView")==="week"?"week":"day";if(t==="light"||t==="dark")d.dataset.theme=t}catch(e){}`;
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
+// The phone's title bar takes the header's colour in each theme (ThemeSwitch overrides it when one is picked).
+export const viewport: Viewport = {
+  width: "device-width", initialScale: 1, viewportFit: "cover",
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }, { media: "(prefers-color-scheme: dark)", color: "#262626" }],
+};
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

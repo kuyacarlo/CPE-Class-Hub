@@ -4,6 +4,7 @@ import pkg from "@/package.json";
 import { getOfficer } from "@/lib/auth";
 import { loadCourses, loadLastUpdate, loadTerm } from "@/lib/data";
 import NotifySettings from "./NotifySettings";
+import ThemeSwitch from "./ThemeSwitch";
 import { formatShort, formatTime, manilaNowMinutes, manilaToday, sundayOf } from "@/lib/time";
 import { termWeek } from "@/lib/week";
 import s from "./Footer.module.css";
@@ -38,6 +39,7 @@ export default async function Footer() {
               <form action="/auth/signout" method="post"><button className={s.out}>Sign out</button></form>
             </span>
           )}
+          <ThemeSwitch />
           <span>v{pkg.version}</span>
         </div>
       </div>

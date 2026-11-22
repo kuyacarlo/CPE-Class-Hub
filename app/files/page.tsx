@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { loadCourses, loadFiles, LoadError } from "@/lib/data";
 import FileTable from "@/components/files/FileTable";
 import FileRows from "@/components/files/FileRows";
@@ -33,7 +34,7 @@ export default async function Files({ searchParams }: { searchParams: Promise<{ 
       {/* Phones: no course picked means All (desktop opens on General); one chip row, then rows */}
       <div className="ph">
         <CourseChips label="Files by course" base="/files" courses={courses} counts={counts} sel={picked?.code ?? (course?.toLowerCase() === "general" ? "general" : null)} />
-        <div className="swap">{course ? (shown.length ? <FileRows files={shown} courses={courses} grouped={false} /> : <p className="box empty">No files for {picked?.name ?? "General"} yet.</p>)
+        <div className="swap">{course ? (shown.length ? <FileRows files={shown} courses={courses} grouped={false} /> : <p className="box empty">No files for {picked?.name ?? "General"} yet. <Link href="/files">See all files</Link></p>)
           : files.length ? <FileRows files={files} courses={courses} grouped /> : <p className="box empty">No files yet.</p>}</div>
       </div>
       <div className="dt swap">

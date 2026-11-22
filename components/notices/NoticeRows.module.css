@@ -1,15 +1,15 @@
 .row{padding:12px 14px;display:grid;gap:3px}
 .l1{display:flex;align-items:center;gap:8px}
 .l1 :global(.tag){background:var(--c)}
-.pill{background:var(--ink);color:#fff;border-radius:999px;padding:0 8px;font-size:12px;font-weight:700}
-.past .pill{background:#555}
+.pill{background:var(--ink);color:var(--paper);border-radius:999px;padding:0 8px;font-size:12px;font-weight:700}
+.past .pill{background:var(--muted)}
 .date{margin-left:auto;font-size:13px;font-weight:700;white-space:nowrap}
 .title{all:unset;cursor:pointer;font-weight:700;font-size:16px;line-height:1.3;min-height:24px}
-.title:focus-visible{outline:3px solid #2f6bff;outline-offset:3px}
-.body,.full{font-size:14px;color:#333;white-space:pre-wrap}
+.title:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.body,.full{font-size:14px;color:var(--ink2);white-space:pre-wrap}
 .body{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cal{font-size:13px;font-weight:700}
-.past{opacity:.6}
+.past{opacity:.8}
 .row:has(.title:active){background:var(--soft)}
 @media(prefers-reduced-motion:no-preference){.full{animation:fade .2s ease-out}}
 @keyframes fade{from{opacity:0}}

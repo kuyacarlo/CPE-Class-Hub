@@ -50,7 +50,8 @@ export default function Calendar({ week, courses, sel, today, weekStart, upcomin
     const box = scroller.current;
     const head = box?.querySelector<HTMLElement>(`[data-day="${startIdx}"]`);
     const hours = box?.querySelector<HTMLElement>("[data-hours]");
-    if (!wide && box && head && hours) box.scrollLeft = head.offsetLeft - hours.offsetWidth;
+    // Measured on screen, not with offsetLeft (that counts from the nearest positioned parent, not the scroller).
+    if (!wide && box && head && hours) box.scrollLeft += head.getBoundingClientRect().left - hours.getBoundingClientRect().right;
   }, [wide, view, startIdx, weekStart]);
 
   return (

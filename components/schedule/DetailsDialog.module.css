@@ -1,10 +1,10 @@
-.dlg{padding:0;border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--ink);width:min(580px,calc(100vw - 32px));max-height:calc(100vh - 48px);color:var(--ink)}
+.dlg{padding:0;border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--shc);width:min(580px,calc(100vw - 32px));max-height:calc(100vh - 48px);color:var(--ink)}
 .dlg::backdrop{background:rgba(17,17,17,.5)}
 .dh{background:var(--c);padding:18px 20px;border-bottom:var(--bw) solid var(--ink);display:flex;gap:12px;align-items:flex-start}
-.dh :global(.tag){background:#fff}
+.dh :global(.tag){background:var(--card)}
 .dh p{font-weight:700}
 .dh h2{font:800 28px/1.1 var(--head);letter-spacing:-.02em;margin-top:6px}
-.x{margin-left:auto;flex:none;width:40px;height:40px;border:var(--bw) solid var(--ink);border-radius:10px;background:#fff;font-size:22px;line-height:1;cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+.x{margin-left:auto;flex:none;width:40px;height:40px;border:var(--bw) solid var(--ink);border-radius:10px;background:var(--card);font-size:22px;line-height:1;cursor:pointer;box-shadow:2px 2px 0 var(--shc)}
 .db{padding:18px 20px 22px;display:grid;gap:16px}
 .body{font-size:16px;white-space:pre-wrap}
 .db dl{display:grid;grid-template-columns:110px 1fr;gap:8px 16px;margin:0}
@@ -12,9 +12,9 @@
 .db dt{font-weight:700}
 .db dd{margin:0;white-space:pre-wrap}
 .db h3{font:800 18px/1.2 var(--head);margin-bottom:6px}
-.lnote{border:2px solid var(--ink);border-radius:10px;padding:12px 14px;background:#fffef7}
+.lnote{border:2px solid var(--ink);border-radius:10px;padding:12px 14px;background:var(--cream)}
 .lnote p{margin-top:4px}
-.past{filter:grayscale(1);opacity:.6}
+.past{filter:grayscale(1);opacity:.8}
 .meta{color:var(--muted);font-size:14px}
 .lnote .meta{margin-top:6px}
 @media(max-width:900px){.db dl{grid-template-columns:90px 1fr}}
@@ -23,10 +23,12 @@
 .course{font-weight:700;text-underline-offset:3px}
 .hours{width:100%;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end}
 .hours label{display:grid;gap:4px;font-size:13px;font-weight:700}
-.hours input{width:110px;height:38px;padding:0 10px;background:#fff;border:2px solid var(--ink);border-radius:8px;font-size:15px;font-weight:400}
+.hours input{width:110px;height:38px;padding:0 10px;background:var(--card);border:2px solid var(--ink);border-radius:8px;font-size:15px;font-weight:400}
 /* "Something wrong?" for classmates */
 .report summary{cursor:pointer;font-weight:700;font-size:14px;text-decoration:underline;text-underline-offset:3px;min-height:44px;display:flex;align-items:center;width:max-content}
 .report form{display:grid;gap:8px;margin-top:4px}
 .report label{display:grid;gap:4px;font-size:13px;font-weight:700}
-.report textarea{font:inherit;font-weight:400;font-size:15px;padding:8px 10px;border:2px solid var(--ink);border-radius:8px;background:#fff;resize:vertical}
+.report textarea{font:inherit;font-weight:400;font-size:15px;padding:8px 10px;border:2px solid var(--ink);border-radius:8px;background:var(--card);resize:vertical}
 .report .btn{justify-self:start}
+/* Course colour: dark text and lines, day or night */
+.dh{--ink:#111;--card:#fff;--paper:#fff;--shc:#111;color:#111}

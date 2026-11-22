@@ -79,7 +79,10 @@ export default async function Schedule({ searchParams }: { searchParams: Promise
       <div className="dt">{up ? <NextUp items={up} courses={list} today={today} /> : <Failed what="calendar" href={here} />}</div>
       <div className={`swap ${s.wk}`}>
         {courses ? <div className="dt"><CourseFilter courses={list} sel={sel} week={week} weekStart={weekStart} weekParam={weekParam} /></div> : <Failed what="courses" href={here} />}
-        <div className="v-week swap"><div key={weekStart} className="wk-in">{calProps ? <Calendar {...calProps} /> : <Failed what="calendar" href={here} />}</div></div>
+        <div className="v-week swap">
+          <div key={weekStart} className="wk-in">{calProps ? <Calendar {...calProps} /> : <Failed what="calendar" href={here} />}</div>
+          {up && <div className="ph"><NextUp items={up} courses={list} today={today} tickets /></div>}
+        </div>
       </div>
       {week && <div className="dt"><PostedThisWeek notices={posted} items={weekItems} courses={list} today={today} /></div>}
       {/* At the end on Schedule, so it never pushes the day off the first screen */}

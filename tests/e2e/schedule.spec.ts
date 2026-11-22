@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 // Data comes from supabase/seed.sql (run `npx supabase db reset` first).
 const cal = (page: import("@playwright/test").Page) => page.getByRole("region", { name: "Calendar" });
 
+/** A week that is never this week: the Sunday two weeks from now (the app takes any day of a week). */
+const otherWeek = () => new Date(Date.now() + 14 * 864e5).toISOString().slice(0, 10);
+
 test("a term week shows its number and US date range", async ({ page }) => {
   await page.goto("/?week=2026-11-15");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Schedule of Week 1");
@@ -80,7 +83,7 @@ test("a phone's Week view shows three whole days, with hours trimmed to the week
     const box = el.getBoundingClientRect();
     const left = el.querySelector<HTMLElement>("[data-hours]")!.getBoundingClientRect().right;
     return [...el.querySelectorAll<HTMLElement>("[data-day]")].map((d) => d.getBoundingClientRect())
-      .filter((r) => r.right > left + 1 && r.left < box.right - 1)
+      .filter((r) => r.right > left + 6 && r.left < box.right - 6) // a column's border or a few px peeking at an edge is not a day in view
       .map((r) => r.left >= left - 1 && r.right <= box.right + 1);
   })).toEqual([true, true, true]);
   // The seed's classes run 7:30 to 4:00, so the grid stops at 4 PM instead of 8 PM.
@@ -196,7 +199,7 @@ test.describe("the phone day summary", () => {
   });
 
   test("on another week, no day is marked today and the same weekday is shown", async ({ page }) => {
-    await page.goto("/?week=2026-11-22");
+    await page.goto(`/?week=${otherWeek()}`);
     await expect(strip(page).locator("[data-today]")).toHaveCount(0);
     const wd = new Date().toLocaleDateString("en-US", { weekday: "short", timeZone: "Asia/Manila" });
     await expect(strip(page).getByRole("tab", { selected: true })).toHaveAccessibleName(new RegExp(`^${wd} `));
@@ -307,13 +310,13 @@ test.describe("review fixes", () => {
 
   test("on a phone, Today from another week selects today's date", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/?week=2026-11-22");
+    await page.goto(`/?week=${otherWeek()}`);
     const sum = page.getByRole("region", { name: "Day summary" });
     const today = new Date().toLocaleDateString("en-US", { weekday: "short", timeZone: "Asia/Manila" });
     const other = today === "Wed" ? "Thu" : "Wed";
     await sum.getByRole("tab", { name: new RegExp(`^${other} `) }).click();
     await page.getByRole("link", { name: "Today" }).click();
-    await expect(page).not.toHaveURL(/week=2026-11-22/);
+    await expect(page).not.toHaveURL(new RegExp(`week=${otherWeek()}`));
     await expect(sum.getByRole("tablist", { name: "Day" }).getByRole("tab", { selected: true })).toHaveAccessibleName(new RegExp(`^${today} `));
   });
 
@@ -467,5 +470,29 @@ test.describe("keyboard and screen reader on a phone", () => {
     await page.goto("/?week=2026-11-15&course=CNS,ZZZ");
     await expect(page).toHaveURL(/[?&]course=CNS(&|$)/);
     await expect(page.getByRole("banner").getByRole("button", { name: "Filter, 1 course picked" })).toBeVisible();
+  });
+});
+
+test.describe("Next up under the phone's Week view", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("lists the next quizzes and due dates as tickets that open their details", async ({ page }) => {
+    await page.goto("/?week=2026-11-15");
+    await page.evaluate(() => localStorage.setItem("classhub.calendarView", "week"));
+    await page.reload();
+    const list = page.getByRole("region", { name: "Next up" }).filter({ visible: true });
+    await expect(list).toHaveCount(1);
+    const rows = list.getByRole("button");
+    expect(await rows.count()).toBeGreaterThan(0);
+    expect(await rows.count()).toBeLessThanOrEqual(3);
+    await expect(rows.first().locator("time")).toHaveText(/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\d{1,2}(today|tmrw|\d+ days|.*)$/);
+    const title = (await rows.first().locator("b").last().textContent())!;
+    await rows.first().click();
+    await expect(page.getByRole("dialog")).toContainText(title);
+    // The day summary keeps its own Due tab instead.
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => localStorage.setItem("classhub.calendarView", "day"));
+    await page.reload();
+    await expect(page.getByRole("region", { name: "Next up" }).filter({ visible: true })).toHaveCount(0);
   });
 });

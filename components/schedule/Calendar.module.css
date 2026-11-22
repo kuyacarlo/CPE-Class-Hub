@@ -2,7 +2,7 @@
 .calhd h2{font:800 26px/1 var(--head);letter-spacing:-.02em}
 .key{display:flex;gap:8px 14px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
 .key span{display:inline-flex;align-items:center;gap:6px}
-.key i{width:26px;height:16px;border-radius:4px;background:#fff;border:2px solid var(--ink)}
+.key i{width:26px;height:16px;border-radius:4px;background:var(--card);border:2px solid var(--ink)}
 .calw{overflow-x:auto;padding:0 4px 4px 0}
 
 /* Timetable: a time axis, then seven days. Row 1 day names, row 2 the 7 AM–8 PM grid, row 3 each day's one-off items.
@@ -12,16 +12,16 @@
 .corner{grid-column:1;grid-row:1;border-bottom:var(--bw) solid var(--ink)}
 .axis{grid-column:1;grid-row:2;position:relative}
 .axis span{position:absolute;right:6px;transform:translateY(2px);font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap}
-.alsoh{grid-column:1;grid-row:3;border-top:var(--bw) solid var(--ink);padding:10px 6px;font-size:11px;font-weight:700;line-height:1.2;color:var(--muted);background:#fffef7}
+.alsoh{grid-column:1;grid-row:3;border-top:var(--bw) solid var(--ink);padding:10px 6px;font-size:11px;font-weight:700;line-height:1.2;color:var(--muted);background:var(--cream)}
 .dn{grid-row:1;border-left:var(--bw) solid var(--ink);border-bottom:var(--bw) solid var(--ink);padding:10px 12px;display:flex;align-items:baseline;gap:8px;background:var(--card)}
 .dn b{font:800 26px/1 var(--head)}
 .dn span{font-weight:600;font-size:15px}
-.dn.today{background:var(--ink);color:#fff}
-.dn em{font-style:normal;margin-left:auto;background:#fff;color:var(--ink);border-radius:999px;padding:0 8px;font-size:13px;font-weight:700}
-.col{grid-row:2;position:relative;border-left:var(--bw) solid var(--ink);background:repeating-linear-gradient(to bottom,#e4e4df 0 1px,transparent 1px var(--hr))}
-.also{grid-row:3;border-left:var(--bw) solid var(--ink);border-top:var(--bw) solid var(--ink);padding:8px 6px;display:flex;flex-direction:column;gap:6px;background:#fffef7}
-.we{background-color:#f7f7f4}
-.dn.we{background:#f7f7f4}
+.dn.today{background:var(--ink);color:var(--paper)}
+.dn em{font-style:normal;margin-left:auto;background:var(--card);color:var(--ink);border-radius:999px;padding:0 8px;font-size:13px;font-weight:700}
+.col{grid-row:2;position:relative;border-left:var(--bw) solid var(--ink);background:repeating-linear-gradient(to bottom,var(--grid) 0 1px,transparent 1px var(--hr))}
+.also{grid-row:3;border-left:var(--bw) solid var(--ink);border-top:var(--bw) solid var(--ink);padding:8px 6px;display:flex;flex-direction:column;gap:6px;background:var(--cream)}
+.we{background-color:var(--tint)}
+.dn.we{background:var(--tint)}
 .dn.today.we{background:var(--ink)}
 .none{color:var(--muted);font-size:13px;padding:2px 4px}
 

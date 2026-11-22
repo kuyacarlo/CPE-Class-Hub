@@ -1,21 +1,23 @@
-:root{--bg:#efefef;--card:#fff;--ink:#111;--muted:#4d4d4d;--soft:#e9e8e3;--r:10px;--bw:2.5px;--sh:4px 4px 0 var(--ink);--pad:32px;--gap:24px;
+:root{--bg:#efefef;--card:#fff;--ink:#111;--muted:#4d4d4d;--soft:#e9e8e3;--r:10px;--bw:2.5px;--sh:4px 4px 0 var(--shc);--pad:32px;--gap:24px;
+/* paper: text on an ink fill; shc: hard shadows; div: thin dividers; ink2: a softer ink; tint, cream, grid: calendar shades */
+--paper:#fff;--shc:#111;--div:#d9d9d4;--ink2:#333;--tint:#f7f7f4;--cream:#fffef7;--grid:#e4e4df;--hatch:rgba(17,17,17,.22);
 --head:var(--font-head),"Arial Black",sans-serif;color-scheme:light;box-sizing:border-box}
 *,*:before,*:after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--font-body),system-ui,sans-serif;font-variant-numeric:tabular-nums;min-height:100dvh;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
 h1,h2,h3,p{margin:0}
 a{color:inherit}
 button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:3px solid #2f6bff;outline-offset:3px}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 /* :where() = zero specificity, so a component's own style (a course colour, a square corner) always beats this default, whatever order the CSS loads in */
 :where(.box){background:var(--card);border:var(--bw) solid var(--ink);border-radius:var(--r);box-shadow:var(--sh)}
 main{padding:32px var(--pad) 80px;max-width:1560px;margin:0 auto;width:100%;flex:1 0 auto} /* grows so the footer sits at the bottom of short pages */
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:42px;padding:0 18px;border:var(--bw) solid var(--ink);border-radius:var(--r);background:var(--card);box-shadow:3px 3px 0 var(--ink);cursor:pointer;text-decoration:none;font-weight:700;white-space:nowrap;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:42px;padding:0 18px;border:var(--bw) solid var(--ink);border-radius:var(--r);background:var(--card);box-shadow:3px 3px 0 var(--shc);cursor:pointer;text-decoration:none;font-weight:700;white-space:nowrap;color:var(--ink)}
 .btn:hover{background:var(--soft)}
-.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
-.btn.p{background:var(--ink);color:#fff}
-.btn.p:hover{background:#333}
-.btn.s{height:34px;padding:0 12px;font-size:14px;box-shadow:2px 2px 0 var(--ink)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--shc)}
+.btn.p{background:var(--ink);color:var(--paper)}
+.btn.p:hover{background:var(--ink2)}
+.btn.s{height:34px;padding:0 12px;font-size:14px;box-shadow:2px 2px 0 var(--shc)}
 .btn[disabled]{box-shadow:none;color:var(--muted);background:var(--soft);cursor:default;transform:none}
 
 /* A course's colour travels with it as --c */
@@ -23,7 +25,7 @@ main{padding:32px var(--pad) 80px;max-width:1560px;margin:0 auto;width:100%;flex
 
 /* Phones' row lists: one box, flat rows inside, thin dividers between them. */
 .rows{overflow:hidden}
-.rows>*+*{border-top:1.5px solid #ddd}
+.rows>*+*{border-top:1.5px solid var(--div)}
 /* Phones: Schedule shows the day summary or the Week timetable; the choice lives on <html data-view>. */
 @media(max-width:900px){
 /* A date page turning out toward the reader briefly spills past the screen's sides; never let it scroll the page. */
@@ -35,7 +37,10 @@ main{overflow-x:clip}
 @media(min-width:901px){.ph{display:none!important}}
 @media(max-width:900px){.dt{display:none!important}}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#ffd93d;border:var(--bw) solid var(--ink);border-radius:var(--r);box-shadow:var(--sh);padding:12px 18px;z-index:60;max-width:90vw;font-weight:700}
-.empty{padding:20px;color:var(--muted)}
+/* Empty states: an ink note, not grey filler. In a box, the box turns into a dashed outline (nothing to hold yet). */
+.empty{padding:22px 20px;color:var(--ink);font-weight:700;text-align:center;text-wrap:balance}
+.empty a{font-weight:800;text-underline-offset:3px}
+.box.empty{border-style:dashed;box-shadow:none;background:transparent}
 
 @media(max-width:900px){
 :root{--pad:16px;--gap:18px}
@@ -50,11 +55,11 @@ main{padding-top:22px;padding-bottom:32px}
 .title h1{font:800 44px/1 var(--head);letter-spacing:-.03em}
 .title .sub{flex-basis:100%;order:3;font-size:17px;color:var(--muted)}
 .title .act{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
-.seg{display:flex;height:42px;border:var(--bw) solid var(--ink);border-radius:var(--r);box-shadow:3px 3px 0 var(--ink);overflow:hidden;background:var(--card)}
+.seg{display:flex;height:42px;border:var(--bw) solid var(--ink);border-radius:var(--r);box-shadow:3px 3px 0 var(--shc);overflow:hidden;background:var(--card)}
 .seg>*{display:flex;align-items:center;justify-content:center;padding:0 16px;border:0;background:none;cursor:pointer;font-weight:700;text-decoration:none;white-space:nowrap}
 .seg>*+*{border-left:var(--bw) solid var(--ink)}
 .seg>*:hover{background:var(--soft)}
-.seg>[aria-pressed=true],.seg>[aria-current]{background:var(--ink);color:#fff}
+.seg>[aria-pressed=true],.seg>[aria-current]{background:var(--ink);color:var(--paper)}
 .sw{width:22px;height:22px;border:2px solid var(--ink);border-radius:6px;background:var(--c);flex:none}
 @media(max-width:900px){
 .title h1{font-size:34px}
@@ -65,7 +70,7 @@ main{padding-top:22px;padding-bottom:32px}
 
 /* Loading: a control whose page is on its way gets a moving hatch (components/Pending.tsx), and the parts of the page
    that will be replaced (.swap) dim, after a short wait so fast answers never flash. */
-.pending{position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(17,17,17,.22) 0 3px,transparent 3px 9px)}
+.pending{position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:repeating-linear-gradient(135deg,var(--hatch) 0 3px,transparent 3px 9px)}
 :has(>.pending){position:relative}
 .swap{transition:opacity .2s}
 :root:has(.pending) .swap{opacity:.55;transition-delay:.15s}
@@ -91,3 +96,12 @@ dialog[open]::backdrop{animation:fade .2s ease-out}
 @keyframes toast-in{from{opacity:0;transform:translate(-50%,16px)}}
 @keyframes from-right{from{opacity:0;transform:translateX(24px)}}
 @keyframes from-left{from{opacity:0;transform:translateX(-24px)}}
+/* Dark mode, "Night paper": the ink lines turn warm off-white on dark grey, and hard shadows go black. It follows the
+   device unless the visitor picked Light or Dark (<html data-theme>, set before paint from localStorage). */
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#1a1a1a;--card:#262626;--ink:#f2efe8;--muted:#b4b0a8;--soft:#323232;--paper:#1a1a1a;--shc:#000;--div:#3a3a3a;--ink2:#d8d4cc;
+--tint:#202020;--cream:#2b2924;--grid:#2e2e2e;--hatch:rgba(255,255,255,.22);color-scheme:dark}}
+:root[data-theme=dark]{--bg:#1a1a1a;--card:#262626;--ink:#f2efe8;--muted:#b4b0a8;--soft:#323232;--paper:#1a1a1a;--shc:#000;--div:#3a3a3a;
+--ink2:#d8d4cc;--tint:#202020;--cream:#2b2924;--grid:#2e2e2e;--hatch:rgba(255,255,255,.22);color-scheme:dark}
+/* Light islands: anything filled with a course colour (or the yellow toast) keeps dark text and lines at night too */
+.tag,.toast{--ink:#111;--card:#fff;--paper:#fff;--shc:#111;color:#111}

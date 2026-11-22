@@ -16,3 +16,6 @@
 .info>*+*:before{content:none}
 .end{margin-left:0;flex-wrap:wrap;row-gap:8px}
 }
+/* Auto / Light / Dark */
+.theme{height:32px;box-shadow:2px 2px 0 var(--shc)}
+.theme>*{padding:0 10px;font-size:13px}

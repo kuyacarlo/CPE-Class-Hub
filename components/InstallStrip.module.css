@@ -2,7 +2,7 @@
 .strip>p{flex:1;min-width:0}
 .how,.x{height:44px;min-width:44px;border:0;background:none;font:inherit;font-weight:800;color:var(--ink);cursor:pointer;border-radius:8px}
 .how{text-decoration:underline;text-underline-offset:3px;padding:0 8px}
-.dlg{width:min(420px,calc(100vw - 32px));border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--ink);padding:18px 20px;color:var(--ink);font-weight:400}
+.dlg{width:min(420px,calc(100vw - 32px));border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--shc);padding:18px 20px;color:var(--ink);font-weight:400}
 .dlg::backdrop{background:rgba(17,17,17,.5)}
 .dlg h2{font:800 22px/1.1 var(--head);margin-bottom:10px}
 .dlg p{margin-bottom:10px;font-size:15px}

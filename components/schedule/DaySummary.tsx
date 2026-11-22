@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { capDots, daySummary, stripDots, swipeDir } from "@/lib/day";
+import { attachItems, capDots, daySummary, stripDots, swipeDir } from "@/lib/day";
 import { addDays, formatTime, formatShort, fromPgTime } from "@/lib/time";
 import { KIND, type Course, type Item } from "@/lib/types";
 import { otherGroup, type Block, type WeekData } from "@/lib/week";
@@ -119,6 +119,7 @@ export default function DaySummary(p: Props) {
   const notices = p.notices.filter((r) => !otherGroup(r.group, group));
   const offs = sum.extras.filter((i) => i.kind === "no_class");
   const others = sum.extras.filter((i) => i.kind !== "no_class" && !i.at_time);
+  const att = attachItems(sum.classes, others);
   const nextDay = days.findIndex((d, i) => i > picked && daySummary(d, week, p.sel, group).classes.length > 0);
 
   const flank = (b: Block | null, label: string, min: (b: Block) => number) => (
@@ -140,12 +141,13 @@ export default function DaySummary(p: Props) {
       </button>
     );
   };
-  const itemRow = (i: Item, when?: string) => {
+  /** `sub`: listed under its course's class, so the course tag is not repeated. */
+  const itemRow = (i: Item, when?: string, sub?: boolean) => {
     const c = course(i.course_id);
     return (
-      <button key={i.id} type="button" className={s.it} style={{ "--c": c?.color } as React.CSSProperties} onClick={() => openDetail({ t: "item", id: i.id })}>
+      <button key={i.id} type="button" className={sub ? `${s.it} ${s.sub}` : s.it} style={{ "--c": c?.color } as React.CSSProperties} onClick={() => openDetail({ t: "item", id: i.id })}>
         <time>{when ?? (i.at_time ? hm(fromPgTime(i.at_time)) : KIND[i.kind])}</time>
-        <span><Tag c={c} /> <b>{i.title}</b>{i.lab_group && <em>{i.lab_group}</em>}</span>
+        <span>{!sub && <><Tag c={c} /> </>}<b>{i.title}</b>{i.lab_group && <em>{i.lab_group}</em>}</span>
       </button>
     );
   };
@@ -206,7 +208,10 @@ export default function DaySummary(p: Props) {
         <div key={`${date}-${panel}`} className={leaving ? s.rise : s.fade}>
         {panel === "classes" && (
           <div className="box rows">
-            {sum.classes.map(blockRow)}
+            {/* A course's due dates and other untimed items sit under its class, as one group */}
+            {att.groups.map((g) => g.items.length
+              ? <div key={`g${g.b.e.t === "slot" ? g.b.e.slot.id : g.b.e.item.id}`} className={s.grp}>{blockRow(g.b)}{g.items.map((i) => itemRow(i, undefined, true))}</div>
+              : blockRow(g.b))}
             {!sum.classes.length && (
               <p className={s.none}>
                 {typeof p.tw === "string" ? `${p.tw}, no classes` : `No classes ${date === p.today ? "today" : `on ${DAY[wd]}`}`}
@@ -218,7 +223,7 @@ export default function DaySummary(p: Props) {
                 <span key={i.id}>{j > 0 && ", "}<button type="button" className={s.link} onClick={() => openDetail({ t: "item", id: i.id })}>{course(i.course_id)?.code}{i.lab_group && ` (${i.lab_group})`}</button></span>
               ))}</p>
             )}
-            {others.map((i) => itemRow(i))}
+            {att.loose.map((i) => itemRow(i))}
           </div>
         )}
         {panel === "due" && (p.upcoming === null

@@ -1,12 +1,12 @@
 /* A sideways row that bleeds to the screen edges; the page itself never scrolls sideways. */
 .chips{display:flex;gap:6px;overflow-x:auto;margin:0 calc(-1 * var(--pad)) 16px;padding:4px var(--pad) 6px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chips :is(button,a){flex:none;display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 12px;border:2px solid var(--ink);border-radius:999px;background:#fff;font:inherit;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;cursor:pointer}
+.chips :is(button,a){flex:none;display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 12px;border:2px solid var(--ink);border-radius:999px;background:var(--card);font:inherit;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;cursor:pointer}
 .chips i{width:14px;height:14px;border:2px solid var(--ink);border-radius:4px;background:var(--c,#fff)}
 .all i{background:conic-gradient(#ff6b6b 0 40deg,#ff9f43 0 80deg,#ffd93d 0 120deg,#b8e62e 0 160deg,#3ddc97 0 200deg,#5b8cff 0 240deg,#c6c3ff 0 280deg,#a78bfa 0 320deg,#ff7ec7 0)}
 .chips small{color:var(--muted);font-weight:600}
-.chips :is([aria-pressed=true],[aria-current=page]){background:var(--ink);color:#fff}
-.chips :is([aria-pressed=true],[aria-current=page]) small{color:#ccc}
+.chips :is([aria-pressed=true],[aria-current=page]){background:var(--ink);color:var(--paper)}
+.chips :is([aria-pressed=true],[aria-current=page]) small{color:inherit;opacity:.75}
 .chips :is(button,a):active{transform:translate(1px,1px);background:var(--soft)}
-.chips :is([aria-pressed=true],[aria-current=page]):active{background:#333}
+.chips :is([aria-pressed=true],[aria-current=page]):active{background:var(--ink2)}
 @media(prefers-reduced-motion:no-preference){.chips :is(button,a){transition:transform .08s,box-shadow .08s,background-color .1s}}

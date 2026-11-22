@@ -52,3 +52,19 @@ test("the install strip never shows on a desktop", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("region", { name: "Add to Home Screen" })).toHaveCount(0);
 });
+
+test("dark mode follows the device, and the footer switch overrides it and is remembered", async ({ page }) => {
+  const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/notices");
+  expect(await bg()).toBe("rgb(26, 26, 26)");
+  const theme = page.getByRole("contentinfo").getByRole("group", { name: "Theme" });
+  await expect(theme.getByRole("button", { name: "Auto" })).toHaveAttribute("aria-pressed", "true");
+  await theme.getByRole("button", { name: "Light" }).click();
+  expect(await bg()).toBe("rgb(239, 239, 239)");
+  await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute("content", "#ffffff");
+  await page.reload(); // set before paint, from this browser's choice
+  expect(await bg()).toBe("rgb(239, 239, 239)");
+  await theme.getByRole("button", { name: "Auto" }).click();
+  expect(await bg()).toBe("rgb(26, 26, 26)");
+});
