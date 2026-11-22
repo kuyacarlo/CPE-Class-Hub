@@ -84,7 +84,7 @@ export default function Calendar({ week, courses, sel, today, weekStart, upcomin
                   };
                   const id = b.e.t === "slot" ? b.e.slot.id : b.e.item.id;
                   // Long classes have room for a two-line name; blocks sharing the column drop the room line.
-                  const fit = [s.blk, end - start >= 120 && s.tall, b.lanes > 1 && s.narrow].filter(Boolean).join(" ");
+                  const fit = [s.blk, end - start >= 90 && s.tall, b.lanes > 1 && s.narrow].filter(Boolean).join(" ");
                   return (
                     <EventCard key={id} e={b.e} date={d} course={course(b.e.course)} className={fit} place={place} compact next={b.e.t === "item" && id === nextId} noticed={b.e.t === "item" && noticed(id)} />
                   );

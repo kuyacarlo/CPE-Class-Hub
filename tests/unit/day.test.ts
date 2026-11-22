@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Item, Slot } from "@/lib/types";
 import type { WeekData } from "@/lib/week";
-import { attachItems, capDots, courseCounts, daySummary, hourRange, stripDots, swipeDir } from "@/lib/day";
+import { attachItems, breakable, capDots, courseCounts, daySummary, hourRange, stripDots, swipeDir } from "@/lib/day";
 
 const term = { starts_on: "2026-11-15", week_count: 18 };
 const breaks = [{ starts_on: "2026-12-20", label: "Christmas break" }];
@@ -117,5 +117,13 @@ describe("attachItems", () => {
     const { groups, loose } = attachItems(sum.classes, sum.extras.filter((i) => i.kind !== "no_class" && !i.at_time));
     expect(groups.map((g) => [g.b.e.t === "slot" && g.b.e.slot.id, g.items.map((i) => i.id)])).toEqual([["a1", ["due-a"]], ["b", []], ["a2", []]]);
     expect(loose.map((i) => i.id)).toEqual(["due-c"]);
+  });
+});
+
+describe("breakable", () => {
+  it("adds soft hyphens inside long words only, never leaving fewer than three letters after one", () => {
+    expect(breakable("Microprocessors")).toBe("Micr­opro­cess­ors");
+    expect(breakable("Methods of Research")).toBe("Methods of Research");
+    expect(breakable("Microprocessors").replace(/­/g, "")).toBe("Microprocessors");
   });
 });

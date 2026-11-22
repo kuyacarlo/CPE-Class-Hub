@@ -1,4 +1,5 @@
 "use client";
+import { breakable } from "@/lib/day";
 import { formatTime, fromPgTime } from "@/lib/time";
 import { KIND, type Course, type Item, type Slot } from "@/lib/types";
 import type { Entry } from "@/lib/week";
@@ -28,6 +29,7 @@ export const where = (slot: Pick<Slot, "online" | "room">) => (slot.online ? "On
 /** An online class's window dots, like a video call's title bar. Decoration only; the card says "Online". */
 export const Dots = () => <span className={s.dots} aria-hidden="true"><span /><span /><span /></span>;
 
+
 export const Tag =({ c }: { c?: Course }) => (
   <span className="tag" style={{ "--c": c?.color ?? "#ddd" } as React.CSSProperties} title={c?.name}>{c?.code ?? "—"}</span>
 );
@@ -52,7 +54,7 @@ export default function EventCard({ e, date, course, next, noticed, className, p
         {/* An online class's bar holds only the tag and dots, so it stays one line and the name still shows */}
         <span className={s.top}><Tag c={course} />{on ? <Dots /> : <small>{hm(e.slot.starts_at)}–{hm(e.slot.ends_at)}</small>}</span>
         {on && <small>{hm(e.slot.starts_at)}–{hm(e.slot.ends_at)}</small>}
-        <b>{e.slot.agenda ?? course?.name ?? "Course"}</b>
+        <b>{breakable(e.slot.agenda ?? course?.name ?? "Course")}</b>
         {(e.slot.lab_group || place) && <small>{[e.slot.lab_group, place].filter(Boolean).join(" · ")}</small>}
       </>
     ) : (
@@ -68,7 +70,7 @@ export default function EventCard({ e, date, course, next, noticed, className, p
     body = (
       <>
         <span className={s.top}><Tag c={course} />{e.item.at_time && <small>{hm(e.item.at_time)}</small>}</span>
-        <b>{e.item.title}</b>
+        <b>{breakable(e.item.title)}</b>
         <small>
           <i>{KIND[e.item.kind]}{e.item.lab_group && ` · ${e.item.lab_group}`}</i>
           {e.item.moved_from_date && <span className={s.mv}>Moved</span>}

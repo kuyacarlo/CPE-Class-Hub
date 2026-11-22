@@ -27,7 +27,8 @@
 .sheet{display:grid;grid-template-columns:72px 1fr 72px;align-items:center;text-align:center;background:var(--card);border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--shc);padding:14px 10px 16px}
 .mon,.wd{grid-column:1/4;font-weight:800;letter-spacing:.18em;font-size:13px;text-transform:uppercase}
 .wd{margin-top:6px;letter-spacing:.12em}
-.num{font:800 132px/0.9 var(--head);letter-spacing:-.06em;color:var(--c);-webkit-text-stroke:3px var(--ink);paint-order:stroke}
+/* The tight spacing also trails the last digit, pushing the number right of centre; the right padding evens it out */
+.num{font:800 132px/0.9 var(--head);letter-spacing:-.06em;padding-right:.045em;color:var(--c);-webkit-text-stroke:3px var(--ink);paint-order:stroke}
 .fl{display:grid;gap:3px;justify-items:center;font-size:12px;color:var(--muted)}
 .fl i{width:24px;height:24px;border:var(--bw) solid var(--ink);border-radius:6px;background:var(--c)}
 .fl strong{font:800 17px var(--head);color:var(--ink)}

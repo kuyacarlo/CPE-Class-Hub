@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import Plate from "@/components/Plate";
 import { browserClient } from "@/lib/supabase/browser";
 
 function SignIn() {
@@ -9,13 +11,16 @@ function SignIn() {
   const signIn = () =>
     browserClient().auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback` } });
   return (
-    <main>
-      <div className="box" style={{ padding: 24, maxWidth: 420 }}>
-        <h1>Officers sign in with Google</h1>
-        {failed && <p role="alert" style={{ marginTop: 12 }}>Sign-in didn&apos;t finish. Try again.</p>}
-        <button className="btn p" style={{ marginTop: 16 }} onClick={signIn}>Sign in with Google</button>
-      </div>
-    </main>
+    <Plate
+      title="Officer sign-in"
+      actions={<>
+        <button className="btn p" onClick={signIn}>Sign in with Google</button>
+        <Link href="/">Back to the schedule</Link>
+      </>}
+    >
+      <p>Officers sign in with Google to post notices, classes and files. Use the account the head officer added.</p>
+      {failed && <p role="alert">Sign-in didn&apos;t finish. Try again.</p>}
+    </Plate>
   );
 }
 

@@ -76,12 +76,12 @@ export default async function Schedule({ searchParams }: { searchParams: Promise
           {calProps && <DownloadPng {...calProps} title={`${heading} · ${sub}`} name={typeof tw === "number" ? String(tw) : weekStart} />}
         </div>
       </div>
-      <div className="dt">{up ? <NextUp items={up} courses={list} today={today} /> : <Failed what="calendar" href={here} />}</div>
+      <div className="dt">{up ? <NextUp items={up} courses={list} today={today} wide /> : <Failed what="calendar" href={here} />}</div>
       <div className={`swap ${s.wk}`}>
         {courses ? <div className="dt"><CourseFilter courses={list} sel={sel} week={week} weekStart={weekStart} weekParam={weekParam} /></div> : <Failed what="courses" href={here} />}
         <div className="v-week swap">
           <div key={weekStart} className="wk-in">{calProps ? <Calendar {...calProps} /> : <Failed what="calendar" href={here} />}</div>
-          {up && <div className="ph"><NextUp items={up} courses={list} today={today} tickets /></div>}
+          {up && <div className="ph"><NextUp items={up} courses={list} today={today} /></div>}
         </div>
       </div>
       {week && <div className="dt"><PostedThisWeek notices={posted} items={weekItems} courses={list} today={today} /></div>}

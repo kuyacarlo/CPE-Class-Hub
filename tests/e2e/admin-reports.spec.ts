@@ -4,6 +4,7 @@ import { expect, test } from "@playwright/test";
 const OFFICER = "tests/e2e/.auth/officer.json";
 
 test("a classmate's report reaches the officers' inbox", async ({ browser }) => {
+  test.setTimeout(60_000); // two browsers, and the admin page compiles cold on a fresh dev server
   const msg = `E2E The room is ER 999 now ${Date.now()}`;
   const visitor = await (await browser.newContext()).newPage();
   await visitor.goto("/?week=2026-11-15");

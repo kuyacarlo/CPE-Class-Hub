@@ -105,3 +105,5 @@ dialog[open]::backdrop{animation:fade .2s ease-out}
 --ink2:#d8d4cc;--tint:#202020;--cream:#2b2924;--grid:#2e2e2e;--hatch:rgba(255,255,255,.22);color-scheme:dark}
 /* Light islands: anything filled with a course colour (or the yellow toast) keeps dark text and lines at night too */
 .tag,.toast{--ink:#111;--card:#fff;--paper:#fff;--shc:#111;color:#111}
+/* Read by screen readers, not shown */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

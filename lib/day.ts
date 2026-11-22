@@ -58,3 +58,9 @@ export function attachItems(classes: Block[], items: Item[]): { groups: { b: Blo
     loose: items.filter((i) => !first.has(i.course_id)),
   };
 }
+
+/**
+ * Timetable cards are narrow on phones: long words ("Microprocessors") get hidden break points (soft hyphens) so they wrap
+ * as "Micropro-cessors" instead of ending in "…" after a few letters. Automatic hyphenation isn't on every device.
+ */
+export const breakable = (s: string) => s.replace(/\p{L}{10,}/gu, (w) => w.replace(/(\p{L}{4})(?=\p{L}{3})/gu, "$1\u00AD"));

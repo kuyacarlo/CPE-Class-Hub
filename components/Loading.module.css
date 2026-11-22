@@ -1,0 +1,8 @@
+.sk i{display:block;height:14px;border-radius:6px;background:var(--soft)}
+.h{width:180px;height:40px!important;border-radius:8px!important;margin-bottom:var(--gap)}
+.chips{display:flex;gap:6px;margin-bottom:16px;overflow:hidden}
+.chips i{flex:none;height:44px!important;border-radius:999px!important;border:2px solid var(--soft)}
+.rows>div{padding:14px;display:grid;gap:8px}
+.rows>div+div{border-top:1.5px solid var(--div)}
+@media(prefers-reduced-motion:no-preference){.sk{animation:pulse 1.2s ease-in-out infinite alternate}}
+@keyframes pulse{from{opacity:1}to{opacity:.55}}
